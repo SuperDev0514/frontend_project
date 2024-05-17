@@ -75,6 +75,7 @@ import { ClassificationMixed } from '../examples/classification_mixed';
  */
 // import { AllTypes } from "../examples/all_types";
 
+
 const data = Ranker;
 
 function getData(task) {

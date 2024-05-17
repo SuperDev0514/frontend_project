@@ -49,6 +49,7 @@ export const AudioRegionModel = types
   }))
   .actions(self => ({
     /**
+
      * @returns {AudioRegionResult}
      */
     serialize() {
