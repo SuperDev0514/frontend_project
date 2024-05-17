@@ -1,11 +1,13 @@
-import { Block, Elem } from '../../utils/bem';
-import { LsChevron } from '../../assets/icons';
-import { Button } from '../../common/Button/Button';
-import './AnnotationsCarousel.styl';
-import { AnnotationButton } from './AnnotationButton';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { clamp } from '../../utils/utilities';
+
+import { LsChevron } from '../../assets/icons';
+import { Button } from '../../common/Button/Button';
+import { Block, Elem } from '../../utils/bem';
+import { clamp, sortAnnotations } from '../../utils/utilities';
+import { AnnotationButton } from './AnnotationButton';
+
+import './AnnotationsCarousel.styl';
 
 interface AnnotationsCarouselInterface {
   store: any;
@@ -54,10 +56,10 @@ export const AnnotationsCarousel = observer(({ store, annotationStore }: Annotat
     <Block name='annotations-carousel' style={{ '--carousel-left': `${currentPosition}px` }}>
       <Elem ref={containerRef} name='container'>
         <Elem ref={carouselRef} name='carosel'>
-          {entities.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()).map(entity => (
-            <AnnotationButton 
-              key={entity?.id} 
-              entity={entity} 
+          {sortAnnotations(entities).map(entity => (
+            <AnnotationButton
+              key={entity?.id}
+              entity={entity}
               capabilities={{
                 enablePredictions,
                 enableCreateAnnotation,
@@ -72,14 +74,14 @@ export const AnnotationsCarousel = observer(({ store, annotationStore }: Annotat
       </Elem>
       {(!isLeftDisabled || !isRightDisabled) && (
         <Elem name='carousel-controls'>
-          <Elem tag={Button} name='nav' mod={{ left: true, disabled: isLeftDisabled }} aria-label="Carousel left" onClick={(e: MouseEvent) => !isLeftDisabled && updatePosition(e, true)}>
+          <Elem tag={Button} name='nav' disabled={isLeftDisabled} mod={{ left: true, disabled: isLeftDisabled }} aria-label="Carousel left" onClick={(e: MouseEvent) => !isLeftDisabled && updatePosition(e, true)}>
             <Elem name='arrow' mod={{ left: true }} tag={LsChevron} />
           </Elem>
-          <Elem tag={Button} name='nav' mod={{ right: true, disabled: isRightDisabled }} aria-label="Carousel right" onClick={(e: MouseEvent) => !isRightDisabled && updatePosition(e, false)}>
+          <Elem tag={Button} name='nav' disabled={isRightDisabled} mod={{ right: true, disabled: isRightDisabled }} aria-label="Carousel right" onClick={(e: MouseEvent) => !isRightDisabled && updatePosition(e, false)}>
             <Elem name='arrow' mod={{ right: true }} tag={LsChevron} />
           </Elem>
         </Elem>
       )}
     </Block>
-  ): null;
+  ) : null;
 });

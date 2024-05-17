@@ -1,3 +1,4 @@
+import { guidGenerator } from '../../../utils/unique';
 import { Destructable } from '../Common/Destructable';
 import { Waveform } from '../Waveform';
 import { WaveformAudio, WaveformAudioOptions } from './WaveformAudio';
@@ -182,30 +183,11 @@ export class MediaLoader extends Destructable {
         errorHandler();
       });
 
-      xhr.addEventListener('readystatechange', () => {
-        if (xhr.readyState === 4 && xhr.status !== 200 && xhr.status !== 0) {
-          errorHandler();
-        }
-      });
 
-      // Handle relative urls, by converting them to absolute so any query params can be preserved
-      const newUrl = new URL(url, /^https?/.exec(url) ? undefined : window.location.href);
 
-      const signedUrlParams = [
-        'X-Goog-Signature', // Google Cloud Storage
-        'X-Amz-Signature', // S3|Minio|DigitalOcean|Backblaze
-        'sig', // Azure
-      ];
+      
+      xhr.open('GET', `${url}?lsv=${guidGenerator()}`);
 
-      // If the url is signed, we need to preserve the query params otherwise the signature will be invalid
-      if (!signedUrlParams.some(p => newUrl.searchParams.has(p))) {
-        // Arbitrary setting of query param to stop caching from reusing any media requests which may have less headers
-        // cached than this request. This is to prevent a CORS error when the headers are different between partial
-        // content and full content requests.
-        newUrl.searchParams.set('lsref', '1');
-      }
-
-      xhr.open('GET', newUrl.toString(), true);
       xhr.send();
     });
   }

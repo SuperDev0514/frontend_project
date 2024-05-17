@@ -1,3 +1,4 @@
+
 import { flow, getEnv, types } from 'mobx-state-tree';
 import Utils from '../../utils';
 import { camelizeKeys } from '../../utils/utilities';
@@ -22,6 +23,7 @@ export const Comment = types.model('Comment', {
     get sdk() {
       return getEnv(self).events;
     },
+
     get isPersisted() {
       return self.id > 0;
     },
@@ -33,29 +35,32 @@ export const Comment = types.model('Comment', {
       self.isResolved = !self.isResolved;
 
       try {
+
         yield self.sdk.invoke('comments:update', {
+ 
           id: self.id,
           is_resolved: self.isResolved,
         });
-      } catch(err) {
+      } catch (err) {
         self.isResolved = !self.isResolved;
         throw err;
       }
+
     });
 
-    function setEditMode( newMode ) {
+    function setEditMode(newMode) {
       self.isEditMode = newMode;
     }
 
-    function setDeleted( newMode ) {
+    function setDeleted(newMode) {
       self.isDeleted = newMode;
     }
 
-    function setConfirmMode( newMode ) {
+    function setConfirmMode(newMode) {
       self.isConfirmDelete = newMode;
     }
 
-    const updateComment = flow(function* ( comment ) {
+    const updateComment = flow(function* (comment) {
       if (self.isPersisted && !self.isDeleted) {
         yield self.sdk.invoke('comments:update', {
           id: self.id,

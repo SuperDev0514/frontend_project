@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { FC, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Tooltip } from 'antd';
@@ -13,6 +14,7 @@ import {
   IconCheck,
   IconDraftCreated,
   LsSparks
+
 } from '../../assets/icons';
 import { Space } from '../../common/Space/Space';
 import { Userpic } from '../../common/Userpic/Userpic';
@@ -56,6 +58,10 @@ const DraftState: FC<{
 }> = observer(({ annotation, inline, isSelected }) => {
   const hasChanges = annotation.history.hasChanges;
   const store = annotation.list; // @todo weird name
+  const dateCreated = !annotation.isDraftSaving && annotation.draftSaved;
+
+  const [hasUnsavedChanges, setChanges] = useState(false);
+
 
   const [hasUnsavedChanges, setChanges] = useState(false);
 
@@ -106,9 +112,10 @@ const AnnotationHistoryComponent: FC<any> = ({
   const annotation = annotationStore.selected;
   const lastItem = history?.length ? history[0] : null;
   const hasChanges = annotation.history.hasChanges;
+
   // if user makes changes at the first time there are no draft yet
   const isDraftSelected = !annotationStore.selectedHistory && (annotation.draftSelected || (!annotation.versions.draft && hasChanges));
-
+  
   return (
     <Block name="annotation-history" mod={{ inline }}>
       {showDraft && (
@@ -121,6 +128,7 @@ const AnnotationHistoryComponent: FC<any> = ({
         const isSelected = isLastItem && !selectedHistory && showDraft
           ? !isDraftSelected
           : selectedHistory?.id === item.id;
+        
 
         return (
           <HistoryItem
@@ -138,13 +146,11 @@ const AnnotationHistoryComponent: FC<any> = ({
                 return;
               }
 
-
               if (hasChanges) {
                 annotation.saveDraftImmediately();
                 // wait for draft to be saved before switching to history
                 await when(() => !annotation.isDraftSaving);
               }
-
               if (isLastItem || isSelected) {
                 // last history state and draft are actual annotation, not from history
                 // and if user clicks on already selected item we should switch to last state
@@ -188,7 +194,9 @@ const HistoryItemComponent: FC<{
   const isPrediction = entity?.type === 'prediction';
 
   const reason = useMemo(() => {
+
     switch(acceptedState) {
+
       case 'accepted': return 'Accepted';
       case 'rejected': return 'Rejected';
       case 'fixed_and_accepted': return 'Fixed';
@@ -293,7 +301,7 @@ const HistoryComment: FC<{
 
 const HistoryIcon: FC<{type: HistoryItemType}> = ({ type }) => {
   const icon = useMemo(() => {
-    switch(type) {
+    switch (type) {
       case 'submitted': return <IconAnnotationSubmitted style={{ color: '#0099FF' }}/>;
       case 'updated': return <IconAnnotationSubmitted style={{ color: '#0099FF' }}/>;
       case 'draft_created': return <IconDraftCreated style={{ color: '#0099FF' }}/>;

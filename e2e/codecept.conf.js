@@ -2,6 +2,7 @@
 // HEADLESS=true npx codecept run
 const headless = process.env.HEADLESS;
 const port = process.env.LSF_PORT ?? 3000;
+
 const enableCoverage = process.env.COVERAGE === 'true';
 const fs = require('fs');
 const FRAGMENTS_PATH = './fragments/';
@@ -35,6 +36,9 @@ module.exports.config = {
       timezoneId: 'Europe/Paris',
       trace: false,
       keepTraceForPassedTests: false,
+    },
+    PlaywrightAddon: {
+      require: './helpers/PlaywrightAddon.js',
     },
     MouseActions: {
       require: './helpers/MouseActions.js',
