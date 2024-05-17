@@ -1,53 +1,43 @@
-import { CSSProperties, FC, MutableRefObject, MouseEvent as RMouseEvent, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Block, Elem } from "../../../../utils/bem";
-import { TimelineContext } from "../../Context";
-import { TimelineContextValue, TimelineViewProps } from "../../Types";
-import WaveSurfer from "wavesurfer.js";
-import "./Wave.styl";
-import RegionsPlugin from "wavesurfer.js/src/plugin/regions";
-import TimelinePlugin from "wavesurfer.js/src/plugin/timeline";
-import { formatTimeCallback, secondaryLabelInterval, timeInterval } from "./Utils";
-import { clamp, isDefined, isMacOS } from "../../../../utils/utilities";
-import { Range } from "../../../../common/Range/Range";
-import { IconFast, IconSlow, IconZoomIn, IconZoomOut } from "../../../../assets/icons";
-import { Space } from "../../../../common/Space/Space";
-import CursorPlugin from "wavesurfer.js/src/plugin/cursor";
-import { useMemoizedHandlers } from "../../../../hooks/useMemoizedHandlers";
-import { useMemo } from "react";
-import { WaveSurferParams } from "wavesurfer.js/types/params";
-
-const ZOOM_X = {
-  min: 10,
-  max: 1500,
-  step: 10,
-  default: 10,
-};
-
-const SPEED = {
-  min: 0.5,
-  max: 2,
-  step: 0.01,
-  default: 1,
-};
+import { CSSProperties, FC, MutableRefObject, MouseEvent as RMouseEvent, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Block, Elem } from '../../../../utils/bem';
+import { TimelineContext } from '../../Context';
+import { TimelineContextValue, TimelineViewProps } from '../../Types';
+import WaveSurfer from 'wavesurfer.js';
+import './Wave.styl';
+import RegionsPlugin from 'wavesurfer.js/src/plugin/regions';
+import TimelinePlugin from 'wavesurfer.js/src/plugin/timeline';
+import { formatTimeCallback, secondaryLabelInterval, timeInterval } from './Utils';
+import { clamp, isDefined, isMacOS } from '../../../../utils/utilities';
+import { Range } from '../../../../common/Range/Range';
+import { IconFast, IconSlow, IconZoomIn, IconZoomOut } from '../../../../assets/icons';
+import { Space } from '../../../../common/Space/Space';
+import CursorPlugin from 'wavesurfer.js/src/plugin/cursor';
+import { useMemoizedHandlers } from '../../../../hooks/useMemoizedHandlers';
+import { useMemo } from 'react';
+import { WaveSurferParams } from 'wavesurfer.js/types/params';
+import ResizeObserver from '../../../../utils/resize-observer';
+import { WS_SPEED, WS_ZOOM_X } from '../../../../tags/object/AudioNext/constants';
 
 export const Wave: FC<TimelineViewProps> = ({
   position,
   length,
-  playing,
   regions,
-  zoom = ZOOM_X.default,
   volume = 1,
-  speed = SPEED.default,
+  zoom = WS_ZOOM_X.default,
+  speed = WS_SPEED.default,
   onReady,
-  onChange,
+  onPositionChange,
+  onSeek,
   onAddRegion,
   onZoom,
-  onPlayToggle,
+  onPlay,
+  onPause,
   onSpeedChange,
 }) => {
   const { data } = useContext(TimelineContext);
 
-  const tracker = useRef<NodeJS.Timeout>();
+  const tracker = useRef<NodeJS.Timeout | null>(null);
+  const rootRef = useRef<HTMLDivElement>();
   const waveRef = useRef<HTMLElement>();
   const timelineRef = useRef<HTMLElement>();
   const bodyRef = useRef<HTMLElement>();
@@ -55,21 +45,93 @@ export const Wave: FC<TimelineViewProps> = ({
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [loading, setLoading] = useState(true);
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
-  const [scale, setScale] = useState(1);
-  const [startOver, setStartOver] = useState(false);
-
-  const handlers = useMemoizedHandlers({
-    onChange,
-    onZoom,
+  const [scale, setScale] = useState(parseInt(data.defaultscale, 10) || 1);
+  const storedPosition = useRef({
+    zoom: currentZoom,
+    scroll: scrollOffset,
   });
+  const shouldStartOver = useRef(false);
 
   const setZoom = useCallback((value: number) => {
-    const newValue = clamp(value, ZOOM_X.min, ZOOM_X.max);
+    const newValue = clamp(value, WS_ZOOM_X.min, WS_ZOOM_X.max);
 
+    storedPosition.current.zoom = newValue;
     setCurrentZoom(newValue);
   }, []);
+
+  const startOver = useCallback(() => {
+    if (!shouldStartOver.current) {
+      shouldStartOver.current = true;
+    }
+  }, []);
+
+  const resetStartOver = useCallback(() => {
+    if (shouldStartOver.current) {
+      shouldStartOver.current = false;
+    }
+  }, []);
+
+  const trackProgress = useRef(() => {
+    const wsi = ws.current;
+
+    if (!wsi) return;
+
+    handlers.onPositionChange?.(wsi.getCurrentTime() * 1000);
+
+    if (wsi.getCurrentTime() === wsi.getDuration() && !shouldStartOver) {
+      startOver();
+    }
+
+    tracker.current = setTimeout(trackProgress.current);
+  });
+
+  const handlePlay = useCallback(() => {
+    const wsi = ws.current;
+
+    if (!wsi || tracker.current) return;
+
+    if (shouldStartOver.current) {
+      resetStartOver();
+      wsi.setCurrentTime(0);
+    }
+
+    if (wsi.isPlaying() === true) onPlay?.();
+
+    trackProgress.current();
+  }, [onPlay, onPositionChange]);
+
+  const handlePause = useCallback(() => {
+    const wsi = ws.current;
+
+    if (wsi?.isPlaying() === false) onPause?.();
+
+    if (tracker.current) {
+      clearTimeout(tracker.current);
+      tracker.current = null;
+    }
+  }, [onPause]);
+
+  const scrollTo = useCallback((value: number) => {
+    const surfer = waveRef.current?.querySelector('wave');
+
+    storedPosition.current.scroll = value;
+    if (surfer) surfer.scrollLeft = value;
+  }, []);
+
+  const handleFinished = useCallback(() => {
+    startOver();
+    handlePause();
+  }, [handlePause, startOver]);
+
+  const handlers = useMemoizedHandlers({
+    onZoom,
+    onSeek,
+    onPositionChange,
+    onFinish: handleFinished,
+    onPlay: handlePlay,
+    onPause: handlePause,
+  });
 
   const ws = useWaveSurfer({
     containter: waveRef,
@@ -83,22 +145,28 @@ export const Wave: FC<TimelineViewProps> = ({
       autoCenterImmediately: true,
     },
     onLoaded: setLoading,
-    onProgress: setProgress,
-    onPlayToggle,
+    onPlay: () => {
+      resetStartOver();
+      handlers.onPlay();
+    },
+    onPause: () => handlers.onPause(),
+    onPlayFinished: () => handlers.onFinish(),
     onAddRegion,
     onReady,
-    onScroll: (p) => setScrollOffset(p),
-    onSeek: (p) => handlers.onChange?.(p),
-    onZoom: (zoom) => handlers.onZoom?.(zoom),
-    onPlayFinished: () => {
-      setStartOver(true);
-      onPlayToggle?.(false);
+    onScroll: (p) => {
+      storedPosition.current.scroll = p;
+      setScrollOffset(p);
     },
+    onSeek: (p) => {
+      resetStartOver();
+      handlers.onSeek?.(p);
+    },
+    onZoom: (zoom) => handlers.onZoom?.(zoom),
   });
 
   // Handle timeline navigation clicks
   const onTimelineClick = useCallback((e: RMouseEvent<HTMLDivElement>) => {
-    const surfer = waveRef.current!.querySelector("wave")!;
+    const surfer = waveRef.current!.querySelector('wave')!;
     const offset = surfer.getBoundingClientRect().left;
     const duration = ws.current?.getDuration();
     const relativeOffset = (surfer.scrollLeft + (e.clientX - offset)) / surfer.scrollWidth;
@@ -110,7 +178,7 @@ export const Wave: FC<TimelineViewProps> = ({
   // Handle current cursor position
   useEffect(() => {
     let pos = 0;
-    const surfer = waveRef.current?.querySelector?.("wave");
+    const surfer = waveRef.current?.querySelector?.('wave');
 
     if (surfer && length > 0) {
       const relativePosition = position / length;
@@ -124,37 +192,22 @@ export const Wave: FC<TimelineViewProps> = ({
 
   // Handle seeking
   useEffect(() => {
-    const wsi = ws.current;
+    const updatePosition = () => {
+      const wsi = ws.current;
+      const duration = wsi?.getDuration();
+      const currentTime = wsi?.getCurrentTime();
+      const pos = clamp(position / 1000, 0, duration ?? 0);
 
-    if (wsi && !playing) {
-      const pos = clamp(position / length, 0, 1);
+      if (!wsi) return;
+      if (wsi.isPlaying()) return;
+      if (!duration || isNaN(duration)) return;
+      if (pos === currentTime) return;
 
-      if (!isNaN(pos)) wsi.seekTo(pos);
-    }
-  }, [position, playing, length]);
+      wsi.setCurrentTime(pos);
+    };
 
-  // Handle playback updates
-  useEffect(() => {
-    const wsi = ws.current;
-
-    if (wsi) {
-      if (playing) {
-        setStartOver(false);
-        wsi.play(startOver ? 0 : undefined);
-
-        const trackProgress = () => {
-          onChange?.(wsi.getCurrentTime() * 1000);
-
-          tracker.current = setTimeout(trackProgress);
-        };
-
-        tracker.current = setTimeout(trackProgress);
-      } else {
-        wsi.pause();
-        clearTimeout(tracker.current!);
-      }
-    }
-  }, [playing]);
+    updatePosition();
+  }, [position]);
 
   // Handle zoom changes
   useEffect(() => {
@@ -162,6 +215,7 @@ export const Wave: FC<TimelineViewProps> = ({
       const wsi = ws.current;
 
       if (wsi && wsi.params.minPxPerSec !== currentZoom) ws.current?.zoom(currentZoom);
+      scrollTo(storedPosition.current.scroll);
     });
   }, [currentZoom, scrollOffset]);
 
@@ -172,9 +226,7 @@ export const Wave: FC<TimelineViewProps> = ({
 
   // Handle waveform scrolling position change
   useEffect(() => {
-    const surfer = waveRef.current?.querySelector("wave");
-
-    if (surfer)  surfer.scrollLeft = scrollOffset;
+    scrollTo(scrollOffset);
   }, [scrollOffset]);
 
   // Handle volume change
@@ -192,10 +244,29 @@ export const Wave: FC<TimelineViewProps> = ({
     }
   }, [scale]);
 
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      const wsi = ws.current;
+
+      requestAnimationFrame(() => {
+        if (wsi) wsi.drawBuffer();
+        scrollTo(storedPosition.current.scroll);
+      });
+    });
+
+    if (rootRef.current) {
+      observer.observe(rootRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   // Handle wheel events for scrolling and pinch-to-zoom
   useEffect(() => {
     const elem = bodyRef.current!;
-    const wave = elem.querySelector("wave")!;
+    const wave = elem.querySelector('wave')!;
     const isMac = isMacOS();
 
     const onWheel = (e: WheelEvent) => {
@@ -238,27 +309,30 @@ export const Wave: FC<TimelineViewProps> = ({
   }, [cursorPosition]);
 
   return (
-    <Block name="wave">
+    <Block name="wave" ref={rootRef}>
       <Elem name="controls">
-        <Space spread>
+        <Space spread style={{ gridAutoColumns: 'auto' }}>
           <Range
             continuous
             value={speed}
-            {...SPEED}
-            resetValue={SPEED.default}
-            minIcon={<IconSlow style={{ color: "#99A0AE" }} />}
-            maxIcon={<IconFast style={{ color: "#99A0AE" }} />}
+            resetValue={WS_SPEED.default}
+            step={WS_SPEED.step}
+            min={WS_SPEED.min}
+            max={WS_SPEED.max}
+            minIcon={<IconSlow style={{ color: '#99A0AE' }} />}
+            maxIcon={<IconFast style={{ color: '#99A0AE' }} />}
             onChange={(value) => onSpeedChange?.(Number(value))}
           />
-
           <Range
             continuous
             value={currentZoom}
-            {...ZOOM_X}
-            resetValue={ZOOM_X.default}
+            resetValue={WS_ZOOM_X.default}
+            step={WS_ZOOM_X.step}
+            min={WS_ZOOM_X.min}
+            max={WS_ZOOM_X.max}
             minIcon={<IconZoomOut />}
             maxIcon={<IconZoomIn />}
-            onChange={value => setZoom(Number(value))}
+            onChange={value => setZoom(Number(value)) }
           />
         </Space>
       </Elem>
@@ -271,11 +345,7 @@ export const Wave: FC<TimelineViewProps> = ({
           <Elem name="cursor" style={cursorStyle}/>
           <Elem name="surfer" ref={waveRef} onClick={(e: RMouseEvent<HTMLElement>) => e.stopPropagation()}/>
           <Elem name="timeline" ref={timelineRef} />
-          {loading && (
-            <Elem name="loader" mod={{ animated: true }}>
-              <span>{progress}%</span>
-            </Elem>
-          )}
+          {loading && <Elem name="loader" mod={{ animated: true }}/>}
         </Elem>
         <Elem name="scale">
           <Range
@@ -300,16 +370,16 @@ interface WavesurferProps {
   timelineContainer: MutableRefObject<HTMLElement | undefined>;
   regions: any[];
   speed: number;
-  data: TimelineContextValue["data"];
+  data: TimelineContextValue['data'];
   params: Partial<WaveSurferParams>;
-  onProgress: (progress: number) => void;
   onSeek: (progress: number) => void;
   onLoaded: (loaded: boolean) => void;
   onScroll: (position: number) => void;
   onZoom?: (zoom: number) => void;
-  onPlayToggle?: TimelineViewProps["onPlayToggle"];
-  onReady?: TimelineViewProps["onReady"];
-  onAddRegion?: TimelineViewProps["onAddRegion"];
+  onPlay?: TimelineViewProps['onPlay'];
+  onPause?: TimelineViewProps['onPause'];
+  onReady?: TimelineViewProps['onReady'];
+  onAddRegion?: TimelineViewProps['onAddRegion'];
   onPlayFinished: () => void;
 }
 
@@ -321,9 +391,9 @@ const useWaveSurfer = ({
   data,
   params,
   onLoaded,
-  onProgress,
   onSeek,
-  onPlayToggle,
+  onPlay,
+  onPause,
   onPlayFinished,
   onAddRegion,
   onReady,
@@ -333,21 +403,24 @@ const useWaveSurfer = ({
   const ws = useRef<WaveSurfer>();
 
   useEffect(() => {
+    const root = containter.current!;
     const wsi = WaveSurfer.create({
       autoCenter: true,
       scrollParent: true,
       ...params,
       barHeight: 1,
-      container: containter.current!,
-      height: Number(data.height ?? 88),
+      container: root,
+      height: Number(containter?.current?.parentElement?.offsetHeight ?? 146),
       hideScrollbar: true,
       maxCanvasWidth: 8000,
-      waveColor: "#D5D5D5",
-      progressColor: "#656F83",
+      waveColor: '#D5D5D5',
+      progressColor: '#656F83',
       cursorWidth: 0,
+      backend: 'MediaElement',
       loopSelection: true,
       audioRate: speed,
       pixelRatio: 1,
+      minPxPerSec: WS_ZOOM_X.default,
       plugins: [
         RegionsPlugin.create({
           slop: 5,
@@ -360,57 +433,80 @@ const useWaveSurfer = ({
           formatTimeCallback,
           timeInterval,
           secondaryLabelInterval,
-          primaryColor: "rgba(0,0,0,0.1)",
-          secondaryColor: "rgba(0,0,0,0.1)",
-          primaryFontColor: "rgba(0,0,0,0.4)",
-          secondaryFontColor: "#000",
+          primaryColor: 'rgba(0,0,0,0.1)',
+          secondaryColor: 'rgba(0,0,0,0.1)',
+          primaryFontColor: 'rgba(0,0,0,0.4)',
+          secondaryFontColor: '#000',
           labelPadding: 5,
-          unlabeledNotchColor: "#ccc",
+          unlabeledNotchColor: '#ccc',
           notchPercentHeight: 50,
         }),
         CursorPlugin.create({
-          color: "#000",
+          wrapper: timelineContainer.current,
+          color: '#000',
           showTime: true,
           followCursorY: 'true',
           opacity: '1',
+          padding: '20px',
         }),
       ],
     });
 
-    const removeDetachedRegions = () => {
-      const unbound = Object.values(wsi.regions.list).filter((reg: any) => {
-        return !isDefined(reg._region);
-      });
+    Object.assign(window, { wsi });
 
-      unbound.forEach(reg => reg.remove());
+    wsi.setCurrentTime = (time: number) => {
+      const duration = wsi.getDuration();
 
+      if (!isNaN(duration) && time !== wsi.getCurrentTime()) {
+        time = clamp(time, 0, duration);
+        wsi.seekTo(time / wsi.getDuration());
+      }
     };
 
-    wsi.on("ready", () => {
+    const getDetachedRegions = () => {
+      return Object
+        .values(wsi.regions.list)
+        .filter((reg: any) => !isDefined(reg._region));
+    };
+
+    const removeDetachedRegions = () => {
+      const detachedRegions = getDetachedRegions();
+
+      detachedRegions.forEach(reg => reg.remove());
+    };
+
+    wsi.on('ready', () => {
       onLoaded(false);
 
-      wsi.initPlugin("regions");
-      wsi.initPlugin("timeline");
+      wsi.initPlugin('regions');
+      wsi.initPlugin('timeline');
 
       if (regions) {
         /**
          * Mouse enter on region
          */
-        wsi.on("region-mouseenter", reg => {
+        wsi.on('region-mouseenter', reg => {
           reg._region?.onMouseOver();
         });
 
         /**
          * Mouse leave on region
          */
-        wsi.on("region-mouseleave", reg => {
+        wsi.on('region-mouseleave', reg => {
           reg._region?.onMouseLeave();
         });
 
         /**
          * Add region to wave
          */
-        wsi.on("region-created", (reg) => {
+        wsi.on('region-created', (reg) => {
+          const history = data.annotation?.history;
+
+          // if user draw new region the final state will be in `onUpdateEnd`
+          // so we should skip history action in `addRegion`;
+          // during annotation init this step will be rewritten at the end
+          // during undo/redo this action will be skipped the same way
+          history?.setSkipNextUndoState();
           const region = onAddRegion?.(reg);
 
           if (!region) {
@@ -423,34 +519,44 @@ const useWaveSurfer = ({
                 resize: false,
               });
 
-              newReg.on("click", () => newReg.remove());
+              newReg.on('click', () => newReg.remove());
 
-              newReg.playLoop();
+              const playCurrentRegion = () => {
+                wsi.setCurrentTime(reg.start);
+                newReg.play();
+              };
+
+              newReg.on('out', () => {
+                wsi.setCurrentTime(reg.end);
+                playCurrentRegion();
+              });
+
+              playCurrentRegion();
             });
+
+
             return;
           }
 
           reg._region = region;
           reg.color = region.selectedregionbg;
 
-          reg.on("click", (e: MouseEvent) => {
+          reg.on('click', (e: MouseEvent) => {
             region.onClick(wsi, e);
           });
 
-          reg.on("dblclick", (e: MouseEvent) => {
+          reg.on('dblclick', (e: MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
 
-            window.setTimeout(function() {
+            setTimeout(function() {
               reg.playLoop();
             }, 0);
           });
 
-          reg.on("update-end", () => {
+          reg.on('update-end', () => {
             region.onUpdateEnd(wsi);
           });
-
-          reg.on("out", () => {});
         });
       }
 
@@ -462,38 +568,51 @@ const useWaveSurfer = ({
 
     wsi.setPlaybackRate(speed);
 
-    wsi.zoom(ZOOM_X.default);
+    wsi.zoom(WS_ZOOM_X.default);
 
-    wsi.on("scroll", (e) => onScroll(e.target.scrollLeft));
+    wsi.on('scroll', (e) => onScroll(e.target.scrollLeft));
 
-    wsi.on("play", () => onPlayToggle?.(true));
+    wsi.on('play', () => {
+      const currentTime = wsi.getCurrentTime();
 
-    wsi.on("pause", () => onPlayToggle?.(false));
+      onSeek(currentTime * 1000);
+      onPlay?.();
+    });
 
-    wsi.on("finish", () => onPlayFinished?.());
+    wsi.on('pause', () => onPause?.());
+
+    wsi.on('finish', () => {
+      onPlayFinished?.();
+    });
 
     wsi.on('zoom', (minPxPerMinute) => onZoom?.(minPxPerMinute));
 
-    wsi.on("seek", (progress) => {
-      removeDetachedRegions();
-      onSeek((wsi.getDuration() * progress) * 1000);
+    wsi.on('seek', () => {
+      const currentTime = wsi.getCurrentTime();
+
+      onSeek(currentTime * 1000);
     });
 
-    wsi.on("loading", (progress) => {
-      onProgress(progress);
-    });
-
-    wsi.load(data._value);
+    if (data._value) wsi.load(data._value);
 
     ws.current = wsi;
 
-    Object.assign(window, { surfer: wsi });
+    const handleClick = () => {
+      removeDetachedRegions();
+    };
+
+    root.addEventListener('click', handleClick);
 
     return () => {
-      Object.entries(wsi.getActivePlugins()).forEach(([name, active]) => {
-        if (active) wsi.destroyPlugin(name);
-      });
-      wsi.destroy();
+      root.removeEventListener('click', handleClick);
+      try {
+        Object.entries(wsi.getActivePlugins()).forEach(([name, active]) => {
+          if (active) wsi.destroyPlugin(name);
+        });
+        wsi.destroy();
+      } catch (error) {
+        console.error('Error:', error);
+      }
     };
   }, []);
 

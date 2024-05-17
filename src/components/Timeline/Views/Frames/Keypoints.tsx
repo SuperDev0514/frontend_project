@@ -1,11 +1,12 @@
-import chroma from "chroma-js";
-import { CSSProperties, FC, memo, MouseEvent, useCallback, useContext, useMemo } from "react";
-import { Block, Elem } from "../../../../utils/bem";
-import { clamp } from "../../../../utils/utilities";
-import { TimelineContext } from "../../Context";
-import { TimelineRegion } from "../../Types";
-import "./Keypoints.styl";
-import { Lifespan, visualizeLifespans } from "./Utils";
+
+import chroma from 'chroma-js';
+import { CSSProperties, FC, memo, MouseEvent, useCallback, useContext, useMemo } from 'react';
+import { Block, Elem } from '../../../../utils/bem';
+import { clamp } from '../../../../utils/utilities';
+import { TimelineContext } from '../../Context';
+import { TimelineRegion } from '../../Types';
+import './Keypoints.styl';
+import { Lifespan, visualizeLifespans } from './Utils';
 
 export interface KeypointsProps {
   idx: number;
@@ -25,7 +26,10 @@ export const Keypoints: FC<KeypointsProps> = ({
   const { step, seekOffset, visibleWidth, length } = useContext(TimelineContext);
   const { label, color, visible, sequence, selected } = region;
 
-  const extraSteps = Math.round(visibleWidth / 2);
+
+  const extraSteps = useMemo(() => {
+    return Math.round(visibleWidth / 2);
+  }, [visibleWidth]);
 
   const minVisibleKeypointPosition = useMemo(() => {
     return clamp(seekOffset - extraSteps, 0, length);
@@ -110,7 +114,8 @@ const LifespansList: FC<LifespansListProps> = ({
 
         return (
           <LifespanItem
-            key={i}
+
+            key={`${i}-${points.length}-${isLast}-${visible}`}
             mainOffset={offset}
             step={step}
             isLast={isLast}

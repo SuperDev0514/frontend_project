@@ -1,8 +1,8 @@
-import { types } from "mobx-state-tree";
+import { types } from 'mobx-state-tree';
 
 type UserLabel = {
   path: string[],
-  origin: "user" | "session",
+  origin: 'user' | 'session',
 }
 
 type ControlsWithLabels = Record<string, UserLabel[]>;
@@ -16,7 +16,7 @@ const UserLabels = types
   })
   .actions(self => ({
     addLabel(control: string, path: string[]) {
-      const label: UserLabel = { path, origin: "session" };
+      const label: UserLabel = { path, origin: 'session' };
       const labels = [...(self.controls[control] ?? []), label];
 
       self.controls = { ...self.controls, [control]: labels };
@@ -24,7 +24,6 @@ const UserLabels = types
 
     deleteLabel(control: string, path: string[]) {
       if (!self.controls[control]) return;
-
       const labels = self.controls[control].filter(existed =>
         existed.path.length !== path.length
         || !existed.path.every((item, index) => item === path[index]));
@@ -37,11 +36,10 @@ const UserLabels = types
 
       for (const control in controls) {
         adjusted[control] = controls[control].map(path => ({
-          origin: "user",
+          origin: 'user',
           path,
         }));
       }
-
       self.controls = adjusted;
     },
   }));

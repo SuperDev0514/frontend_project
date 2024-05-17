@@ -1,31 +1,34 @@
-import { FC, MutableRefObject, useRef, useState } from "react";
-import { Block } from "../../../utils/bem";
-import { clamp } from "../../../utils/utilities";
-import { TimelineSideControlProps } from "../Types";
-import "./FramesControl.styl";
+import { FC, MutableRefObject, useMemo, useRef, useState } from 'react';
+import { Block } from '../../../utils/bem';
+import { clamp } from '../../../utils/utilities';
+import { TimelineSideControlProps } from '../Types';
+import './FramesControl.styl';
 
 export const FramesControl: FC<TimelineSideControlProps> = ({
-  position = 1,
-  length = 1,
+  position = 0,
+  length = 0,
   onPositionChange,
 }) => {
   const [inputMode, setInputMode] = useState(false);
+  const duration = useMemo(() => {
+    return length - 1;
+  }, [length]);
 
   return (
     <Block name="frames-control" onClick={() => setInputMode(true)}>
       {inputMode ? (
         <FrameInput
-          length={length}
+          length={duration}
           position={position}
           onChange={(value) => {
-            onPositionChange?.(value);
+            onPositionChange?.(clamp(value, 0, length));
           }}
           onFinishEditing={() => {
             setInputMode(false);
           }}
         />
       ) : (
-        <>{Math.round(position)} <span>of {Math.round(length)}</span></>
+        <>{clamp(Math.round(position + 1), 1, duration + 1)} <span>of {duration + 1}</span></>
       )}
     </Block>
   );
@@ -58,11 +61,11 @@ const FrameInput: FC<FrameInputProps> = ({ length, position, onChange, onFinishE
     <input
       type="text"
       ref={input}
-      defaultValue={position}
+      defaultValue={position + 1}
       autoFocus
       onFocus={() => input.current?.select()}
       onKeyDown={(e) => {
-        const allowedKey = allowedKeys.find(k => (k instanceof RegExp) ? k.test(e.key) : k === e.key );
+        const allowedKey = allowedKeys.find(k => (k instanceof RegExp) ? k.test(e.key) : k === e.key);
 
         if (!allowedKey && !e.metaKey) e.preventDefault();
 
