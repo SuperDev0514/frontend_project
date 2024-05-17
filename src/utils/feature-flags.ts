@@ -174,6 +174,16 @@ export const FF_LSDV_3028 = 'fflag_feat_front_lsdv_3028_audio_v3_multichannel_de
  */
 export const FF_LSDV_3009 = 'fflag_fix_font_lsdv_3009_draft_saving_stuck_130223_short';
 
+export const FF_DEV_2480 = "ff_dev_2480_convenient_offsets_270522_short";
+
+export const FF_DEV_2132 = "ff_front_dev_2132_rotating_bounding_box";
+
+export const FF_DEV_2458 = "ff_front_dev_2458_comments_for_skip_250522_short";
+
+export const FF_DEV_1442 = "ff_front_dev_1442_unselect_shape_on_click_outside_080622_short";
+
+export const FF_DEV_2431 = "ff_front_dev_2431_delete_polygon_points_080622_short";
+
 function getFeatureFlags() {
   return {
     ...(window.APP_SETTINGS?.feature_flags ?? {}),

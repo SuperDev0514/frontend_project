@@ -35,9 +35,7 @@ export const KonvaRegionMixin = types.model({})
         const annotation = self.annotation;
         const ev = e?.evt || e;
         const additiveMode = ev?.ctrlKey || ev?.metaKey;
-
         if (e) e.cancelBubble = true;
-
         const selectAction = () => {
           self._selectArea(additiveMode);
           deferredSelectId = null;

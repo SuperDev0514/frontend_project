@@ -1,5 +1,6 @@
 import { types } from 'mobx-state-tree';
 
+
 import Registry from '../../core/Registry';
 import ControlBase from './Base';
 import { customTypes } from '../../core/CustomTypes';
@@ -49,6 +50,7 @@ const Model = types
     type: 'rectangle',
   })
   .volatile(() => ({
+
     toolNames: isFF(FF_DEV_2132) ? ['Rect', 'Rect3Point'] : ['Rect'],
   }));
 

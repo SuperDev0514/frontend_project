@@ -1,3 +1,4 @@
+
 import { clamp, isDefined } from './utilities';
 
 export const isTextNode = node => node && node.nodeType === Node.TEXT_NODE;
@@ -279,6 +280,7 @@ const applyTextGranularity = (selection, granularity) => {
  * @param {string} direction forward, backward, forward-next, backward-next
  *                           "-next" when we need to skip node if it's a text node
  */
+
 const textNodeLookup = (commonContainer, node, offset, direction = 'forward') => {
   const startNode = node === commonContainer ? node.childNodes[offset] : node;
 
@@ -294,6 +296,7 @@ const textNodeLookup = (commonContainer, node, offset, direction = 'forward') =>
     if (isTextNode(currentNode)) lastTextNode = currentNode;
     currentNode = walker.nextNode();
   }
+
 
   if (currentNode && direction.startsWith('backward')) return lastTextNode;
 
@@ -326,6 +329,7 @@ const fixRange = range => {
   // if user started selection from the end of the tag, start could be this tag,
   // so we should move it to more relevant one
   const selectionFromTheEnd = startContainer.wholeText.length === startOffset;
+
   // we skip ephemeral whitespace-only text nodes, like \n between tags in original html
   const isBasicallyEmpty = textNode => /^\s*$/.test(textNode.wholeText);
 
@@ -340,6 +344,7 @@ const fixRange = range => {
   }
 
   if (!isTextNode(endContainer)) {
+
     endContainer = textNodeLookup(commonContainer, endContainer, endOffset, 'backward');
     if (!endContainer) return null;
 

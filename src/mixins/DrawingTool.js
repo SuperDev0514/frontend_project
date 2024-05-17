@@ -411,6 +411,7 @@ const MultipleClicksDrawingTool = DrawingTool.named('MultipleClicksMixin')
     };
   });
 
+
 const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
   .views((self) => ({
     canStart() {
@@ -439,6 +440,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
     };
 
     return {
+
       canStartDrawing() {
         return !self.isIncorrectControl();
       },
@@ -482,6 +484,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
       },
 
       mousemoveEv(_, [x, y]) {
+
         if(self.isDrawing){
           if(lastEvent === MOUSE_DOWN_EVENT) {
             currentMode = DRAG_MODE;
@@ -496,6 +499,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
         }
       },
       mousedownEv(ev, [x, y]) {
+
         if (!self.canStartDrawing() || self.annotation.isDrawing) return;
         lastEvent = MOUSE_DOWN_EVENT;
         startPoint = { x, y };
@@ -512,6 +516,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
         }
       },
       clickEv(ev, [x, y]) {
+
         if (!self.canStartDrawing()) return;
         if (currentMode === DEFAULT_MODE) {
           self._clickEv(ev, [x, y]);
@@ -543,5 +548,6 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
       },
     };
   });
+
 
 export { DrawingTool, TwoPointsDrawingTool, MultipleClicksDrawingTool, ThreePointsDrawingTool };
