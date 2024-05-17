@@ -2,13 +2,16 @@ class ResizeObserverFallback {
   observe() {
 
   }
+
   unobserve() {
 
   }
+
   disconnect() {
 
   }
 }
+
 
 const ResizeObserver = window.ResizeObserver ?? ResizeObserverFallback;
 

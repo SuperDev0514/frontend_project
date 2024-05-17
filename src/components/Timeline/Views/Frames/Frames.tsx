@@ -351,7 +351,7 @@ export const Frames: FC<TimelineViewProps> = ({
             scrollTop={currentOffsetY}
             startOffset={timelineStartOffset}
             onSelectRegion={onSelectRegion}
-            disabled={regionSelectionDisabled}
+   disabled={regionSelectionDisabled}
           />
         </Elem>
       </Elem>
@@ -365,6 +365,7 @@ interface KeypointsVirtualProps {
   regions: any[];
   startOffset: number;
   scrollTop: number;
+
   disabled?: boolean;
   onSelectRegion: TimelineViewProps['onSelectRegion'];
 }
@@ -373,6 +374,7 @@ const KeypointsVirtual: FC<KeypointsVirtualProps> = ({
   regions,
   startOffset,
   scrollTop,
+
   disabled,
   onSelectRegion,
 }) => {
@@ -397,6 +399,7 @@ const KeypointsVirtual: FC<KeypointsVirtualProps> = ({
             idx={i + 1}
             region={region}
             startOffset={startOffset}
+
             onSelectRegion={disabled ? undefined : onSelectRegion}
             renderable={bounds[0] <= i && i <= bounds[1]}
           />

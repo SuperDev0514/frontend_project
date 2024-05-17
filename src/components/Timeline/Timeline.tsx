@@ -1,3 +1,4 @@
+
 import { observer } from 'mobx-react';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorageState } from '../../hooks/useLocalStorageState';
@@ -10,6 +11,7 @@ import { Seeker } from './Seeker';
 import './Timeline.styl';
 import { TimelineContextValue, TimelineControlsStepHandler, TimelineProps } from './Types';
 import { default as Views } from './Views';
+
 
 const TimelineComponent: FC<TimelineProps> = ({
   regions,
@@ -98,6 +100,7 @@ const TimelineComponent: FC<TimelineProps> = ({
     seekOffset,
     settings: View.settings,
     visibleWidth: seekVisibleWidth,
+
   }), [
     position,
     seekOffset,
@@ -144,6 +147,7 @@ const TimelineComponent: FC<TimelineProps> = ({
         onStepForward={increasePosition}
         onRewind={(steps) => setInternalPosition(isDefined(steps) ? currentPosition - steps : 0)}
         onForward={(steps) => setInternalPosition(isDefined(steps) ? currentPosition + steps : length)}
+
         onPositionChange={setInternalPosition} 
         onToggleCollapsed={setViewCollapsed}
         formatPosition={formatPosition}
@@ -189,6 +193,7 @@ const TimelineComponent: FC<TimelineProps> = ({
         position={currentPosition}
         offset={seekOffset}
         leftOffset={View.settings?.leftOffset}
+
         onReady={(data) => handlers.onReady?.(data)}
         onScroll={setSeekOffset}
         onResize={setSeekVisibleWidth}

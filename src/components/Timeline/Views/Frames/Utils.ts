@@ -9,11 +9,21 @@ export interface Lifespan {
   points: TimelineRegionKeyframe[];
 }
 
+export interface Lifespan {
+  offset: number;
+  width: number;
+  length: number;
+  enabled: boolean;
+  start: number;
+  points: TimelineRegionKeyframe[];
+}
+
 export const visualizeLifespans = (keyframes: TimelineRegionKeyframe[], step: number) => {
   if (keyframes.length === 0) return [];
 
   const lifespans: Lifespan[] = [];
   const start = keyframes[0].frame - 1;
+
 
   for (let i = 0, l = keyframes.length; i < l; i++) {
     const lastSpan = lifespans[lifespans.length - 1];

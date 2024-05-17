@@ -36,6 +36,7 @@ const View: TimelineView<typeof Controls> = {
     playpauseHotkey: 'media:playpause',
     stepBackHotkey: 'media:step-backward',
     stepForwardHotkey: 'media:step-forward',
+
     stepAltBack: 'video:keyframe-backward',
     stepAltForward: 'video:keyframe-forward',
     leftOffset: 150,

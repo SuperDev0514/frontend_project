@@ -189,6 +189,7 @@ const HtxVideoView = ({ item, store }) => {
       }
     };
 
+
     document.addEventListener('keydown', onKeyDown);
 
     const observer = new ResizeObserver(() => onResize());
@@ -436,6 +437,7 @@ const HtxVideoView = ({ item, store }) => {
             name="main"
             ref={videoContainerRef}
             style={{ height: Number(item.height) }}
+
             onMouseDown={handlePan}
             onWheel={onZoomChange}
           >

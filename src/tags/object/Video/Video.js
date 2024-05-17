@@ -40,12 +40,14 @@ import ObjectBase from '../Base';
  * @param {number} [frameRate=24] video frame rate per second; default is 24; can use task data like `$fps`
  * @param {string} [sync] object name to sync with
  * @param {boolean} [muted=false] muted video
+
  * @param {number} [height=600] height of the video
  */
 
 const TagAttrs = types.model({
   value: types.maybeNull(types.string),
   hotkey: types.maybeNull(types.string),
+
   framerate: types.optional(types.string, '24'),
   height: types.optional(types.string, '600'),
   muted: false,

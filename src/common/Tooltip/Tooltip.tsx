@@ -1,3 +1,4 @@
+
 import { Children, cloneElement, CSSProperties, forwardRef, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Block, Elem } from '../../utils/bem';
@@ -59,6 +60,7 @@ export const Tooltip = forwardRef<HTMLElement, TooltipProps>(({
     setAlign(resultAlign);
   }, [triggerElement.current, tooltipElement.current]);
 
+
   const performAnimation = useCallback((visible: boolean, disableAnimation?: boolean) => {
     if (tooltipElement.current) {
       if (disableAnimation) {
@@ -116,6 +118,7 @@ export const Tooltip = forwardRef<HTMLElement, TooltipProps>(({
   const child = Children.only(children);
   const clone = cloneElement(child, {
     ...child.props,
+
     ref: forwardingRef,
   });
 
@@ -124,6 +127,7 @@ export const Tooltip = forwardRef<HTMLElement, TooltipProps>(({
   }, [injected]);
 
   useEffect(() => {
+
     const el = triggerElementGetter(triggerElement.current);
 
     const handleTooltipAppear = () => {
@@ -143,6 +147,7 @@ export const Tooltip = forwardRef<HTMLElement, TooltipProps>(({
       }
       performAnimation(false);
     };
+
 
     if (el) {
       el.addEventListener('mouseenter', handleTooltipAppear);
@@ -172,5 +177,6 @@ export const Tooltip = forwardRef<HTMLElement, TooltipProps>(({
     </>
   );
 });
+
 
 Tooltip.displayName = 'Tooltip';

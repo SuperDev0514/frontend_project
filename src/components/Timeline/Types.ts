@@ -59,6 +59,7 @@ export interface TimelineViewProps {
   volume?: number;
   regions: TimelineRegion[];
   leftOffset?: number;
+
   controls?: TimelineControls;
   onScroll: (position: number) => void;
   onPositionChange: (position: number) => void;
@@ -158,6 +159,7 @@ export interface TimelineControlsProps {
   extraControls?: JSX.Element | null;
   allowFullscreen?: boolean;
   allowViewCollapse?: boolean;
+
   controls?: TimelineProps['controls'];
   altHopSize?: TimelineProps['altHopSize'];
   customControls?: TimelineCustomControls[];
