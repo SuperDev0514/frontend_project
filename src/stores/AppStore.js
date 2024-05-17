@@ -164,6 +164,7 @@ export default types
     }
     return {
       ...sn,
+
       _autoAnnotation: localStorage.getItem('autoAnnotation') === 'true',
       _autoAcceptSuggestions: localStorage.getItem('autoAcceptSuggestions') === 'true',
     };

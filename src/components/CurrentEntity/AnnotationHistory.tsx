@@ -14,6 +14,7 @@ import {
   IconCheck,
   IconDraftCreated,
   LsSparks
+
 } from '../../assets/icons';
 import { Space } from '../../common/Space/Space';
 import { Userpic } from '../../common/Userpic/Userpic';
@@ -49,13 +50,6 @@ const injector = inject(({ store }) => {
     selectedHistory: as?.selectedHistory,
   };
 });
-
-const humanDateDiff = (date: string | number) => {
-  const fnsDate = formatDistanceToNow(new Date(date), { addSuffix: true });
-
-  if (fnsDate === "less than a minute ago") return "just now";
-  return fnsDate;
-};
 
 const DraftState: FC<{
   annotation: any,

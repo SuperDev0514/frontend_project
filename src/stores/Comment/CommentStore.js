@@ -1,3 +1,4 @@
+
 import { flow, getEnv, getParent, getRoot, getSnapshot, types } from 'mobx-state-tree';
 import { when } from 'mobx';
 import uniqBy from 'lodash/uniqBy';
@@ -41,6 +42,7 @@ export const CommentStore = types
       return getEnv(self).events;
     },
     get isListLoading() {
+
       return self.loading === 'list';
     },
     get taskId() {
@@ -156,16 +158,17 @@ export const CommentStore = types
       if (self.loading === 'addComment') return;
 
       self.setLoading('addComment');
-
       const now = Date.now() * -1;
 
       const comment =  {
         id: now,
         text,
+
         task: self.taskId,
         created_by: self.currentUser.id,
         created_at: Utils.UDate.currentISODate(),
       };
+
 
       let refetchList = false;
       const { annotation } = self;
@@ -230,6 +233,7 @@ export const CommentStore = types
         self.comments.replace(comments);
       }
     }
+
 
     function hasCache(key) {
       localStorage.getItem(`commentStore.${key}`) !== null;

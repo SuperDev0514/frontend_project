@@ -1,4 +1,5 @@
 
+
 import { destroy, detach, flow, getEnv, getParent, getRoot, isAlive, onSnapshot, types } from 'mobx-state-tree';
 
 import throttle from 'lodash.throttle';
@@ -96,6 +97,7 @@ export const Annotation = types
     commentStore: types.optional(CommentStore, {
       comments: [],
     }),
+
 
     ...(isFF(FF_DEV_3391) ? { root: Types.allModelsTypes() } : {}),
   })
