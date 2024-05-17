@@ -1,5 +1,6 @@
 
 
+
 import { destroy, detach, flow, getEnv, getParent, getRoot, isAlive, onSnapshot, types } from 'mobx-state-tree';
 
 import throttle from 'lodash.throttle';
@@ -865,6 +866,7 @@ export const Annotation = types
 
     createResult(areaValue, resultValue, control, object, skipAfrerCreate = false) {
       // Without correct validation object may be null, but it it shouldn't be so in results - so we should find any
+
       if (isFF(FF_DEV_1598) && !object && control.type === 'textarea') {
         object = self.objects[0];
       }
@@ -888,6 +890,7 @@ export const Annotation = types
         value: areaValue,
         results: [result],
       };
+
 
 
       // TODO: MST is crashing if we don't validate areas?, this problem isn't

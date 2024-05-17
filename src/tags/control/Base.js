@@ -14,6 +14,7 @@ const ControlBase = types.model({
   smart: true,
   smartonly: false,
   isControlTag: true,
+
 }).volatile(() => ({
   snapMode: SNAP_TO_PIXEL_MODE.EDGE,
 })).views(self => ({
