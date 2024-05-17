@@ -5,9 +5,9 @@ import { WaveformAudio, WaveformAudioOptions } from './WaveformAudio';
 
 export type Options = {
   src: string,
-}
+};
 
-type MediaResponse = ArrayBuffer|null;
+type MediaResponse = ArrayBuffer | null;
 
 export class MediaLoader extends Destructable {
   private wf: Waveform;
@@ -17,7 +17,7 @@ export class MediaLoader extends Destructable {
   private cancel: () => void;
   private decoderResolve?: () => void;
   private _duration = 0;
-  
+
   decoderPromise?: Promise<void>;
   loadingProgressType: 'determinate' | 'indeterminate';
 
@@ -37,7 +37,7 @@ export class MediaLoader extends Destructable {
     const changed = this._duration !== duration;
 
     this._duration = duration;
-    
+
     if (changed) {
       this.wf.invoke('durationChanged', [duration]);
     }
@@ -63,14 +63,14 @@ export class MediaLoader extends Destructable {
     });
   }
 
-  async load(options: WaveformAudioOptions): Promise<WaveformAudio| null> {
+  async load(options: WaveformAudioOptions): Promise<WaveformAudio | null> {
     if (this.isDestroyed || this.loaded) {
       return null;
     }
 
     // Create this as soon as possible so that we can
     // update the loading progress from the waveform
-    this.decoderPromise = new Promise((resolve) => {
+    this.decoderPromise = new Promise(resolve => {
       this.decoderResolve = resolve;
     });
 
@@ -79,6 +79,7 @@ export class MediaLoader extends Destructable {
       src: this.options.src,
       splitChannels: this.wf.params.splitChannels,
       decoderType: this.wf.params.decoderType,
+      playerType: this.wf.params.playerType,
     });
 
     // If this failed to allocate an audio decoder, we can't continue
@@ -120,8 +121,10 @@ export class MediaLoader extends Destructable {
         await this.decodeAudioData();
 
         return this.audio ?? null;
-      } catch (err: any) {
-        this.wf.setError(`An error occurred while decoding the audio file. Please select another file or try again. ${err.message}`);
+      } catch (err) {
+        this.wf.setError(
+          `An error occurred while decoding the audio file. Please select another file or try again. ${err.message}`,
+        );
         console.error('An audio decoding error occurred', err);
       }
     }
@@ -161,7 +164,7 @@ export class MediaLoader extends Destructable {
         reject(xhr);
       };
 
-      xhr.addEventListener('progress', (e) => {
+      xhr.addEventListener('progress', e => {
         if (e.lengthComputable) {
           this.loadingProgressType = 'determinate';
           this.wf.setLoadingProgress(e.loaded, e.total);
@@ -179,6 +182,7 @@ export class MediaLoader extends Destructable {
       xhr.addEventListener('error', () => {
         errorHandler();
       });
+
 
 
       

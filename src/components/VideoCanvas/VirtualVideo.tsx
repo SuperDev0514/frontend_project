@@ -1,6 +1,7 @@
 import { DetailedHTMLProps, forwardRef, useCallback, useEffect, useRef, VideoHTMLAttributes } from 'react';
 
 
+
 import { guidGenerator } from '../../utils/unique';
 
 
@@ -82,6 +83,8 @@ export const VirtualVideo = forwardRef<HTMLVideoElement, VirtualVideoProps>((pro
     videoEl.muted = !!props.muted;
     videoEl.controls = false;
     videoEl.preload = 'auto';
+
+    if (isFF(FF_LSDV_4711)) videoEl.crossOrigin = 'anonymous';
 
     Object.assign(videoEl.style, {
       top: '-9999px',

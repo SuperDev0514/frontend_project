@@ -11,6 +11,7 @@ import './Comments.styl';
 
 
 
+
 export const Comments: FC<{ commentStore: any, cacheKey?: string }>= observer(({ commentStore, cacheKey }) => {
   const mounted = useMounted();
 
@@ -47,7 +48,7 @@ export const Comments: FC<{ commentStore: any, cacheKey?: string }>= observer(({
 
   return (
     <Block name="comments">
-      <CommentForm commentStore={commentStore} inline />
+      <CommentForm commentStore={commentStore} annotationStore={annotationStore} inline />
       <CommentsList commentStore={commentStore} />
     </Block>
   );

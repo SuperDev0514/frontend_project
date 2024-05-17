@@ -16,9 +16,6 @@ export const FF_DEV_1284 = 'fflag_fix_front_dev_1284_auto_detect_undo_281022_sho
 // Fix crosshair working with zoom & rotation
 export const FF_DEV_1285 = 'ff_front_dev_1285_crosshair_wrong_zoom_140122_short';
 
-// Add visibleWhen="choice-unselected" option
-export const FF_DEV_1372 = 'ff_front_dev_1372_visible_when_choice_unselected_11022022_short';
-
 export const FF_DEV_1442 = 'ff_front_dev_1442_unselect_shape_on_click_outside_080622_short';
 
 // Keep enabled state of video region on area transformations
@@ -45,17 +42,8 @@ export const FF_DEV_1621 = 'ff_front_dev_1621_interactive_mode_150222_short';
 // New Audio 2.0 UI
 export const FF_DEV_1713 = 'ff_front_DEV_1713_audio_ui_150222_short';
 
-// Rework of Choices tag
-export const FF_DEV_2007 = 'ff_dev_2007_rework_choices_280322_short';
-
-// Add ability to generate children tags from task data
-export const FF_DEV_2007_DEV_2008 = 'ff_dev_2007_dev_2008_dynamic_tag_children_250322_short';
-
 // Clean unnecessary classification areas after deserialization
 export const FF_DEV_2100 = 'ff_dev_2100_clean_unnecessary_areas_140422_short';
-
-// Fix preselected choices
-export const FF_DEV_2100_A = 'ff_dev_2100_preselected_choices_250422_short';
 
 // Allow to use html inside <Label/> tags
 export const FF_DEV_2128 = 'ff_dev_2128_html_in_labels_150422_short';
@@ -63,21 +51,12 @@ export const FF_DEV_2128 = 'ff_dev_2128_html_in_labels_150422_short';
 // 3-point Rectangle tool to created rotated bboxes conveniently
 export const FF_DEV_2132 = 'ff_front_dev_2132_rotating_bounding_box';
 
-// Make nested choices work according to the DES-107
-export const FF_DEV_2244 = 'ff_front_dev_2244_nested_choices_des_107_160522_short';
-
 // Show draft as the topmost item in annotation history
 export const FF_DEV_2290 = 'ff_front_dev_2290_draft_in_annotation_history_short';
 
 export const FF_DEV_2431 = 'ff_front_dev_2431_delete_polygon_points_080622_short';
 
 export const FF_DEV_2432 = 'ff_front_dev_2432_auto_save_polygon_draft_210622_short';
-
-/**
- * Audio + Paragraphs sync playback of chunk position
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_dev_2461_audio_paragraphs_seek_chunk_position_short
- */
-export const FF_DEV_2461 = 'fflag_feat_front_dev_2461_audio_paragraphs_seek_chunk_position_short';
 
 // Undo keypoints when create new polygon
 export const FF_DEV_2576 = 'ff_feat_front_DEV_2576_undo_key_points_polygon_short';
@@ -141,6 +120,12 @@ export const FF_DEV_3666 = 'fflag_fix_front_dev_3666_max_usages_on_region_creati
 export const FF_DEV_3873 = 'fflag_feat_front_dev_3873_labeling_ui_improvements_short';
 
 /**
+ * Filter component that filter regions on outliner component
+ * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_3025_outliner_filter_short
+ */
+export const FF_LSDV_3025 = 'fflag_feat_front_lsdv_3025_outliner_filter_short';
+
+/**
  * Allow shourtcuts button to work with visible main textarea when there is no focus
  * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_dev_3730_shortcuts_initial_input_22122022_short
  */
@@ -165,25 +150,30 @@ export const FF_DEV_4081 = 'fflag_feat_front_dev_4081_magic_wand_tool';
 export const FF_DEV_4174 = 'fflag_fix_back_dev_4174_overlap_issue_experiments_10012023_short';
 
 /**
+ * Contextual scrolling of Paragraph segments with Audio V0
+ * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_e_278_contextual_scrolling_short/targeting
+ */
+export const FF_LSDV_E_278 = 'fflag_feat_front_lsdv_e_278_contextual_scrolling_short';
+
+/**
+ * Annotations with LLM assistance
+ * @link https://app.launchdarkly.com/default/production/features/fflag_feat_all_lsdv_e_294_llm_annotations_180723_long
+ */
+export const FF_LLM_EPIC = 'fflag_feat_all_lsdv_e_294_llm_annotations_180723_long';
+
+/**
  * Fix logic of namespaces inside Hotkeys
  * @link https://app.launchdarkly.com/default/production/features/fflag_fix_font_lsdv_1148_hotkeys_namespaces_01022023_short
  */
 export const FF_LSDV_1148 = 'fflag_fix_font_lsdv_1148_hotkeys_namespaces_01022023_short';
 
 /**
- * Default Audio v3 to use multichannel mode if the track has 2 or more channels.
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_3028_audio_v3_multichannel_default_17022023_short
- *
- */
-export const FF_LSDV_3028 = 'fflag_feat_front_lsdv_3028_audio_v3_multichannel_default_17022023_short';
-
-/**
  * Multi-image segmentation support via `valueList`
  */
-export const FF_LSDV_4583 = 'feat_front_lsdv_4583_multi_image_segmentation_short';
+export const FF_LSDV_4583 = 'fflag_feat_front_lsdv_4583_multi_image_segmentation_short';
 
 /**
- * Enables new way of preloading/cacheing images
+ * Enables new way of preloading/caching images
  */
 export const FF_LSDV_4583_6 = 'fflag_feat_front_lsdv_4583_6_images_preloading_short';
 
@@ -196,9 +186,11 @@ export const FF_LSDV_4583_6 = 'fflag_feat_front_lsdv_4583_6_images_preloading_sh
 export const FF_LSDV_3009 = 'fflag_fix_font_lsdv_3009_draft_saving_stuck_130223_short';
 
 
+
 export const FF_DEV_2480 = "ff_dev_2480_convenient_offsets_270522_short";
 
 export const FF_DEV_2132 = "ff_front_dev_2132_rotating_bounding_box";
+
 
 export const FF_DEV_2458 = "ff_front_dev_2458_comments_for_skip_250522_short";
 
