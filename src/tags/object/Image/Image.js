@@ -14,6 +14,7 @@ import { RectRegionModel } from '../../../regions/RectRegion';
 import * as Tools from '../../../tools';
 import ToolsManager from '../../../tools/Manager';
 import { parseValue } from '../../../utils/data';
+
 import {
   FF_DEV_3377,
   FF_DEV_3666,
@@ -175,6 +176,7 @@ const Model = types.model({
   selectionArea: types.optional(ImageSelection, { start: null, end: null }),
 }).volatile(() => ({
   currentImage: undefined,
+
   supportSuggestions: true,
 })).views(self => ({
   get store() {
@@ -744,6 +746,14 @@ const Model = types.model({
       self.brushStrokeWidth = arg;
     },
 
+    disableHistoryReinit() {
+      self.shouldReinitHistory = false;
+    },
+
+    enableHistoryReinit() {
+      self.shouldReinitHistory = true;
+    },
+
     /**
      * Update brightnessGrade of Image
      * @param {number} value
@@ -771,7 +781,11 @@ const Model = types.model({
 
       self.currentImage = index;
       self.currentImageEntity = self.findImageEntity(index);
-      if (isFF(FF_LSDV_4583_6)) self.preloadImages();
+
+      if (self.multiImage) {
+        self.preloadImages();
+        self.disableHistoryReinit();
+      }
     },
 
     preloadImages() {
@@ -1105,7 +1119,9 @@ const Model = types.model({
       } else {
         self.sizeToAuto();
       }
+
       // Don't force unselection of regions during the updateObjects callback from history reinit
+
       setTimeout(() => self.annotation?.reinitHistory(false), 0);
     },
 
