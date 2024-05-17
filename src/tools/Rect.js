@@ -56,7 +56,7 @@ const _BaseNPointTool = types
         return !self.current() && Super.isIncorrectLabel();
       },
       canStart() {
-        return self.current() === null;
+        return self.current() === null && !self.annotation.isReadOnly();
       },
 
       current() {
@@ -87,7 +87,7 @@ const _Tool = types
         : NodeViews.RectRegionModel.icon;
     },
   }));
-  
+
 const _Tool3Point = types
 
   .model('Rectangle3PointTool', {

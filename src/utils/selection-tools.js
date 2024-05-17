@@ -85,11 +85,11 @@ const findBoundarySelection = (selection, boundary) => {
   // It's easier to operate the selection when it's collapsed
   selection.collapse(endContainer, endOffset);
   // Looking for maximum displacement
-  while (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange)===1) {
+  while (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange) === 1) {
     selection.modify('move', 'backward', boundary);
   }
   // Going back to find minimum displacement
-  while (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange)<1) {
+  while (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange) < 1) {
     currentRange = selection.getRangeAt(0);
     Object.assign(resultRange, {
       startContainer: currentRange.startContainer,
@@ -99,10 +99,10 @@ const findBoundarySelection = (selection, boundary) => {
   }
 
   selection.collapse(startContainer, startOffset);
-  while (selection.getRangeAt(0).compareBoundaryPoints(Range.END_TO_END, originalRange)===-1) {
+  while (selection.getRangeAt(0).compareBoundaryPoints(Range.END_TO_END, originalRange) === -1) {
     selection.modify('move', 'forward', boundary);
   }
-  while (selection.getRangeAt(0).compareBoundaryPoints(Range.END_TO_END, originalRange)>-1) {
+  while (selection.getRangeAt(0).compareBoundaryPoints(Range.END_TO_END, originalRange) > -1) {
     currentRange = selection.getRangeAt(0);
     Object.assign(resultRange, {
       endContainer: currentRange.endContainer,
@@ -137,7 +137,7 @@ const closestBoundarySelection = (selection, boundary) => {
   selection.collapse(startContainer, startOffset);
   selection.modify('move', 'forward', 'character');
   selection.modify('move', 'backward', boundary);
-  if (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange)===1) {
+  if (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange) === 1) {
     selection.collapse(startContainer, startOffset);
     selection.modify('move', 'backward', boundary);
   }
@@ -150,7 +150,7 @@ const closestBoundarySelection = (selection, boundary) => {
   selection.collapse(endContainer, endOffset);
   selection.modify('move', 'backward', 'character');
   selection.modify('move', 'forward', boundary);
-  if (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange)===-1) {
+  if (selection.getRangeAt(0).compareBoundaryPoints(Range.START_TO_START, originalRange) === -1) {
     selection.collapse(endContainer, endOffset);
     selection.modify('move', 'forward', boundary);
   }

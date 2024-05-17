@@ -242,13 +242,6 @@ const plugins = [
   new webpack.EnvironmentPlugin(LOCAL_ENV),
 ];
 
-if (isDevelopment) {
-  plugins.push(new ESLintPlugin({
-    fix: false,
-    failOnError: true,
-  }));
-}
-
 if (!BUILD.NO_SERVER) {
   plugins.push(
     new HtmlWebPackPlugin({
