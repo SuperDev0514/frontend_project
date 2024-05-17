@@ -399,6 +399,7 @@ export const highlightRange = (range, { label, classNames }) => {
 
   const lastLabel = highlights[highlights.length - 1];
 
+
   if (lastLabel) lastLabel.setAttribute('data-label', label ?? '');
 
   return highlights;
@@ -494,6 +495,7 @@ export const applySpanStyles = (spanNode, { classNames, label }) => {
   }
 
   // label is array, string or null, so check for length
+
   if (!label?.length) spanNode.removeAttribute('data-label');
   else spanNode.setAttribute('data-label', label);
 };

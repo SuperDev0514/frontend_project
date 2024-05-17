@@ -1,3 +1,4 @@
+
 import { types } from 'mobx-state-tree';
 
 import Utils from '../utils';
@@ -108,6 +109,7 @@ export const HighlightMixin = types
       const identifier = guidGenerator(IDENTIFIER_LENGTH);
       // @todo use label-based stylesheets created only once
       const stylesheet = createSpanStylesheet(root.ownerDocument, identifier, labelColor);
+
       const classNames = ['htx-highlight', stylesheet.className];
 
       if (!(self.parent.showlabels ?? self.store.settings.showLabels)) {
@@ -116,6 +118,7 @@ export const HighlightMixin = types
 
       // in this case labels presence can't be changed from settings — manual mode
       if (isDefined(self.parent.showlabels)) {
+
         classNames.push('htx-manual-label');
       }
 
@@ -153,6 +156,8 @@ export const HighlightMixin = types
     updateSpans() {
       if (self._hasSpans || (isFF(FF_LSDV_4620_3) && self._spans?.length)) {
         const lastSpan = self._spans[self._spans.length - 1];
+        const label = self.getLabels();
+
 
         Utils.Selection.applySpanStyles(lastSpan, { label: self.getLabels() });
       }
@@ -181,6 +186,7 @@ export const HighlightMixin = types
       }
 
       const lastSpan = self._spans[self._spans.length - 1];
+
 
       if (isFF(FF_LSDV_4620_3)) {
         self.parent.setStyles?.({ [self.identifier]: self.styles });
@@ -268,6 +274,7 @@ export const HighlightMixin = types
     },
 
     getLabels() {
+
       return (self.labeling?.selectedLabels ?? []).map(label => label.value).join(',');
     },
 
@@ -318,6 +325,7 @@ export const HighlightMixin = types
       e?.stopPropagation();
     },
   }));
+
 
 
 
@@ -389,6 +397,9 @@ const createSpanStylesheet = (document, identifier, color) => {
       display: none
     `,
     [`${className}.${STATE_CLASS_MODS.noLabel}::after`]: `
+      display: none
+    `,
+    [`${className}.${stateClass.noLabel}::after`]: `
       display: none
     `,
   };

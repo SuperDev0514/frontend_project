@@ -6,6 +6,7 @@ import Canvas from './canvas';
 // fast way to change labels visibility for all text regions
 function toggleLabelsAndScores(show) {
   const toggleInDocument = document => {
+
     const els = document.getElementsByClassName('htx-highlight');
 
     Array.from(els).forEach(el => {
@@ -18,6 +19,7 @@ function toggleLabelsAndScores(show) {
   };
 
   toggleInDocument(document);
+
   document.querySelectorAll('iframe.lsf-htx-richtext')
     .forEach(iframe => toggleInDocument(iframe.contentWindow.document));
 }
