@@ -1,51 +1,59 @@
-import { FC, useCallback, useContext, useMemo } from "react";
-import { IconCursor, IconDetails, IconList, IconSortDown, IconSortUp, IconSpeed, IconTagAlt } from "../../../assets/icons";
-import { Button } from "../../../common/Button/Button";
-import { Dropdown } from "../../../common/Dropdown/Dropdown";
-import { Menu } from "../../../common/Menu/Menu";
-import { BemWithSpecifiContext } from "../../../utils/bem";
-import { SidePanelsContext } from "../SidePanelsContext";
-import "./ViewControls.styl";
+import { FC, useCallback, useContext, useMemo } from 'react';
+import { IconCursor, IconDetails, IconList, IconSortDown, IconSortUp, IconSpeed, IconTagAlt } from '../../../assets/icons';
+import { Button } from '../../../common/Button/Button';
+import { Dropdown } from '../../../common/Dropdown/Dropdown';
+// eslint-disable-next-line
+// @ts-ignore
+import { Menu } from '../../../common/Menu/Menu';
+import { BemWithSpecifiContext } from '../../../utils/bem';
+import { SidePanelsContext } from '../SidePanelsContext';
+import './ViewControls.styl';
+import { Filter } from '../../Filter/Filter';
+import { FF_DEV_3873, isFF } from '../../../utils/feature-flags';
 
 const { Block, Elem } = BemWithSpecifiContext();
 
-export type GroupingOptions = "manual" | "label" | "type";
+export type GroupingOptions = 'manual' | 'label' | 'type';
 
-export type OrderingOptions = "score" | "date"
+export type OrderingOptions = 'score' | 'date'
 
-export type OrderingDirection = "asc" | "desc"
+export type OrderingDirection = 'asc' | 'desc'
 
 interface ViewControlsProps {
   grouping: GroupingOptions;
   ordering: OrderingOptions;
   orderingDirection?: OrderingDirection;
+  regions: any;
   onOrderingChange: (ordering: OrderingOptions) => void;
   onGroupingChange: (grouping: GroupingOptions) => void;
+  onFilterChange: (filter: any) => void;
 }
 
 export const ViewControls: FC<ViewControlsProps> = ({
   grouping,
   ordering,
+  regions,
   orderingDirection,
   onOrderingChange,
   onGroupingChange,
+  onFilterChange,
 }) => {
   const context = useContext(SidePanelsContext);
   const getGrouppingLabels = useCallback((value: GroupingOptions): LabelInfo => {
     switch(value) {
-      case "manual": return {
-        label: "Group Manually",
-        selectedLabel: "Manual Grouping",
+      case 'manual': return {
+        label: 'Group Manually',
+        selectedLabel: 'Manual Grouping',
         icon: <IconList/>,
       };
-      case "label": return {
-        label: "Group by Label",
-        selectedLabel: "Grouped by Label",
+      case 'label': return {
+        label: 'Group by Label',
+        selectedLabel: 'Grouped by Label',
         icon: <IconTagAlt/>,
       };
-      case "type": return {
-        label: "Group by Tool",
-        selectedLabel: "Grouped by Tool",
+      case 'type': return {
+        label: 'Group by Tool',
+        selectedLabel: 'Grouped by Tool',
         icon: <IconCursor/>,
       };
     }
@@ -53,14 +61,14 @@ export const ViewControls: FC<ViewControlsProps> = ({
 
   const getOrderingLabels = useCallback((value: OrderingOptions): LabelInfo => {
     switch(value) {
-      case "date": return {
-        label: "Order by Time",
-        selectedLabel: "Ordered by Time",
+      case 'date': return {
+        label: 'Order by Time',
+        selectedLabel: 'Ordered by Time',
         icon: <IconDetails/>,
       };
-      case "score": return {
-        label: "Order by Score",
-        selectedLabel: "Ordered by Score",
+      case 'score': return {
+        label: 'Order by Score',
+        selectedLabel: 'Ordered by Score',
         icon: <IconSpeed/>,
       };
     }
@@ -70,7 +78,7 @@ export const ViewControls: FC<ViewControlsProps> = ({
     <Block name="view-controls" mod={{ collapsed: context.locked }}>
       <Grouping
         value={grouping}
-        options={["manual", "type", "label"]}
+        options={['manual', 'type', 'label']}
         onChange={value => onGroupingChange(value)}
         readableValueForKey={getGrouppingLabels}
       />
@@ -78,10 +86,36 @@ export const ViewControls: FC<ViewControlsProps> = ({
         <Grouping
           value={ordering}
           direction={orderingDirection}
-          options={["score", "date"]}
+          options={['score', 'date']}
           onChange={value => onOrderingChange(value)}
           readableValueForKey={getOrderingLabels}
           allowClickSelected
+        />
+      )}
+      {isFF(FF_DEV_3873) && (
+        <Filter
+          onChange={onFilterChange}
+          filterData={regions?.regions}
+          availableFilters={[{
+            label: 'Annotation results',
+            path: 'labelName',
+            type: 'String',
+          },
+          {
+            label: 'Confidence score',
+            path: 'score',
+            type: 'Number',
+          },
+          {
+            label: 'Boolean',
+            path: 'hidden',
+            type: 'Boolean',
+          },
+          {
+            label: 'Common',
+            path: 'isDrawing',
+            type: 'Common',
+          }]}
         />
       )}
     </Block>
@@ -205,7 +239,7 @@ const DirectionIndicator: FC<DirectionIndicator> = ({
 }) => {
   const content = direction === 'asc' ? <IconSortUp/> : <IconSortDown/>;
 
-  if (!direction || value !== name) return null;
+  if (!direction || value !== name || isFF(FF_DEV_3873)) return null;
   if (!wrap) return content;
 
   return (<span>{content}</span>);

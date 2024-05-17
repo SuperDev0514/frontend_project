@@ -1,3 +1,14 @@
+
+@keyframes pulse {
+  0% {
+    transform scale(1)
+  }
+  50% {
+    transform scale(0.5)
+  }
+}
+
+
 .comment-item
   --comment-item-padding 8px
   --comment-item-spacing 6px
@@ -9,7 +20,7 @@
   --comment-item-content-color #413C4A
   --comment-item-content-color-resolved #898098
   --comment-item-icon-color-resolved #389E0D
-  
+
   padding var(--comment-item-padding)
   color var(--comment-item-content-color)
 
@@ -32,10 +43,29 @@
   &__date
     font-size var(--comment-item-content-font-size)
 
+
+  &__saving
+    &_hide
+      display none
+
+  &__dot
+    width 10px
+    height 10px
+    margin-right 4px
+    display inline-block
+    background-color rgba(#000, 0.4)
+    border-radius 100%
+    will-change color, opacity
+    transition color 0.1s ease, opacity 0.1s ease
+    animation pulse 1s linear infinite
+
   &__resolved
     opacity 0
     transition opacity 0.3s ease
     will-change opacity
+
+    height 16px
+
 
     ~/_resolved &
       opacity 1
@@ -44,6 +74,8 @@
       color var(--comment-item-icon-color-resolved) !important
 
   &__content
+
+    width 100%
     display flex
     gap 8px
     align-items flex-start
@@ -71,10 +103,22 @@
   &__text
     flex 1
     white-space pre-wrap
+
+    word-break break-word
     font-size var(--comment-item-content-font-size)
     line-height var(--comment-item-content-line-height)
     letter-spacing var(--comment-item-content-letter-spacing)
 
     ~/_resolved &
       color var(--comment-item-content-color-resolved)
+
+
+  &__question
+    padding 0
+  
+  &__controls
+    display flex
+    justify-content space-between
+    padding var(--comment-item-padding)
+
 
