@@ -5,6 +5,16 @@
   overflow hidden
   white-space nowrap
   text-overflow ellipsis
+  display flex
+
+  &__incomplete
+    display inline-flex
+    margin-left 5px
+    align-items center
+    svg
+      width 20px
+      height 17px
+      fill var(--incomplete-warning-color, #FA8C16)
 
 .node-minimal
   display inline-flex
@@ -19,6 +29,8 @@
     justify-content center
 
   &__icon
+    width 24px
+    height 24px
     margin-right 5px
 
     svg
