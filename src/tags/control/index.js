@@ -11,7 +11,6 @@ import { NumberModel } from './Number';
 import { PairwiseModel } from './Pairwise';
 import { PolygonLabelsModel } from './PolygonLabels';
 import { PolygonModel } from './Polygon';
-import { RankerModel } from './Ranker';
 import { RatingModel } from './Rating';
 import { RectangleLabelsModel } from './RectangleLabels';
 import { RectangleModel } from './Rectangle';
@@ -28,6 +27,8 @@ import { EllipseModel } from './Ellipse';
 import { RelationsModel } from './Relations';
 import { RelationModel } from './Relation';
 
+import { MagicWandModel } from './MagicWand';
+
 export {
   LabelsModel,
   BrushLabelsModel,
@@ -42,7 +43,6 @@ export {
   PairwiseModel,
   PolygonLabelsModel,
   PolygonModel,
-  RankerModel,
   RatingModel,
   RectangleLabelsModel,
   RectangleModel,
@@ -54,6 +54,7 @@ export {
   EllipseModel,
   RelationsModel,
   RelationModel,
+  MagicWandModel,
   VideoRectangleModel,
   ParagraphLabelsModel
 };

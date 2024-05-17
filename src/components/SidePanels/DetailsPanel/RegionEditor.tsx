@@ -73,8 +73,6 @@ const RegionEditorComponent: FC<RegionEditorProps> = ({
           endTime={region.end}
           minTime={0}
           maxTime={region?._ws_region?.duration}
-          startTimeReadonly={true}
-          endTimeReadonly={true}
           isSidepanel={true}
           onChangeStartTime={changeStartTimeHandler}
           onChangeEndTime={changeEndTimeHandler}
@@ -84,7 +82,7 @@ const RegionEditorComponent: FC<RegionEditorProps> = ({
   };
 
   return (
-    <Block name="region-editor" mod={{ disabled: !region.editable }}>
+    <Block name="region-editor" mod={{ disabled: region.isReadOnly() }}>
       {(isAudioModel && isFF(FF_DEV_2715)) ? renderAudioTimeControls() : renderRegionProperty()}
     </Block>
   );
@@ -189,7 +187,7 @@ const RegionProperty: FC<RegionPropertyProps> = ({
   );
 };
 
-interface RegionInputProps extends InputHTMLAttributes<HTMLInputElement>  {
+interface RegionInputProps extends InputHTMLAttributes<HTMLInputElement> {
   type: HTMLInputTypeAttribute;
   onChange?: (newValue: any) => void;
 }
@@ -221,12 +219,12 @@ const RegionInput: FC<RegionInputProps> = ({
         safeValue = false;
       }
 
-      if (value.match(/(,|\.)$/)){
+      if (value.match(/(,|\.)$/)) {
         value = value.replace(/,/, '.');
         safeValue = false;
       }
 
-      if (safeValue){
+      if (safeValue) {
         value = parseFloat(value);
       }
     }

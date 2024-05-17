@@ -11,10 +11,13 @@ export class Player extends Destructable {
   private timestamp = 0;
   private time = 0;
   private connected = false;
+  private bufferPromise?: Promise<void>;
+  private bufferResolve?: () => void;
   private ended = false;
   private _rate = 1;
 
   playing = false;
+  hasPlayed = false;
 
   constructor(wf: Waveform) {
     super();
@@ -27,9 +30,9 @@ export class Player extends Destructable {
    * Get current playback speed
    */
   get rate() {
-    if (this.audio?.source?.playbackRate.value) {
-      if (this.audio.source.playbackRate.value !== this._rate) {
-        this.audio.source.playbackRate.value = this._rate; // restore the correct rate
+    if (this.audio) {
+      if (this.audio.speed !== this._rate) {
+        this.audio.speed = this._rate; // restore the correct rate
       }
     }
 
@@ -44,8 +47,8 @@ export class Player extends Destructable {
 
     this._rate = value;
 
-    if (this.audio?.source) {
-      this.audio.source.playbackRate.value = value;
+    if (this.audio) {
+      this.audio.speed = value;
 
       if (rateChanged) {
         this.wf.invoke('rateChanged', [value]);
@@ -54,11 +57,11 @@ export class Player extends Destructable {
   }
 
   get duration() {
-    return this.audio?.buffer?.duration ?? 0;
+    return this.audio?.duration ?? 0;
   }
 
   get volume() {
-    return this.audio?.gain?.gain.value ?? 1;
+    return this.audio?.volume ?? 1;
   }
 
   set volume(value: number) {
@@ -66,10 +69,16 @@ export class Player extends Destructable {
 
       const volumeChanged = this.volume !== value;
 
-      this.audio.volume = value;
-
       if (volumeChanged) {
-        this.wf.invoke('volumeChange', [value]);
+        if (value === 0) {
+          this.muted = true;
+        } else if(this.muted) {
+          this.muted = false;
+        } else {
+          this.audio.volume = value;
+        }
+
+        this.wf.invoke('volumeChanged', [this.volume]);
       }
     }
   }
@@ -84,20 +93,26 @@ export class Player extends Destructable {
   }
 
   setCurrentTime(value: number, notify = false) {
+    const timeChanged = this.time !== value;
+
     this.time = value;
-    if (notify) {
+
+    if (timeChanged && this.audio?.el) {
+      this.audio.el.currentTime = this.time;
+    }
+
+    if (notify && timeChanged) {
       this.wf.invoke('seek', [this.time]);
     }
   }
 
   get muted() {
-    return this.audio?.volume === 0;
+    return this.audio?.muted ?? false;
   }
 
   set muted(muted: boolean) {
     if (!this.audio) return;
-
-    if (this.audio.muted === muted) return;
+    if (this.muted === muted) return;
 
     if (muted) {
       this.audio.mute();
@@ -108,14 +123,34 @@ export class Player extends Destructable {
     this.wf.invoke('muted', [this.audio.muted]);
   }
 
+  get canPause() {
+    return !!(this.audio?.el && !this.audio.el.paused && this.hasPlayed);
+  }
+
   init(audio: WaveformAudio) {
     this.audio = audio;
+    this.audio.on('canplay', this.handleCanPlay);
+    if (this.audio.el) {
+      this.audio.el.addEventListener('play', this.handlePlayed);
+      this.audio.el.addEventListener('pause', this.handlePaused);
+    }
   }
 
   seek(time: number) {
     const newTime = clamp(time, 0, this.duration);
 
     this.currentTime = newTime;
+
+    if (this.playing) {
+      this.updatePlayback();
+    }
+  }
+
+  seekSilent(time: number) {
+    const newTime = clamp(time, 0, this.duration);
+
+    this.ended = false;
+    this.setCurrentTime(newTime);
 
     if (this.playing) {
       this.updatePlayback();
@@ -132,13 +167,28 @@ export class Player extends Destructable {
     this.playRange(start, end);
   }
 
-  handleEnded = () => {
+  private handlePlayed = () => {
+    this.hasPlayed = true;
+  };
+
+  private handlePaused = () => {
+    this.hasPlayed = false;
+  };
+
+  private handleEnded = () => {
     if (this.loop) return;
-    this.ended = true;
     this.updateCurrentTime(true);
+  };
+
+  private handleCanPlay = () => {
+    this.bufferResolve?.();
+  };
+
+  private playEnded() {
+    this.ended = true;
     this.pause();
     this.wf.invoke('playend');
-  };
+  }
 
   pause() {
     if (this.isDestroyed || !this.playing || !this.audio) return;
@@ -161,6 +211,12 @@ export class Player extends Destructable {
   destroy() {
     this.stop();
     this.cleanupSource();
+    this.bufferPromise = undefined;
+    this.bufferResolve = undefined;
+    if (this.audio?.el) {
+      this.audio.el.removeEventListener('play', this.handlePlayed);
+      this.audio.el.removeEventListener('pause', this.handlePaused);
+    }
     super.destroy();
   }
 
@@ -180,10 +236,9 @@ export class Player extends Destructable {
 
   private playSource(start?: number, duration?: number) {
     this.stopWatch();
-    this.timestamp = performance.now();
-    this.recreateSource();
+    this.connectSource();
 
-    if (!this.audio?.source) return;
+    if (!this.audio) return;
 
     this.playing = true;
 
@@ -196,9 +251,29 @@ export class Player extends Destructable {
       start = clamp(this.loop.start, 0, duration);
     }
 
-    this.audio.source.start(0, start ?? 0, duration ?? this.duration);
-    this.audio.source.addEventListener('ended', this.handleEnded);
-    this.watch();
+    if (this.audio.el) {
+      this.audio.el.currentTime = this.currentTime;
+      this.audio.el.addEventListener('ended', this.handleEnded);
+      this.bufferPromise = new Promise(resolve => {
+        this.bufferResolve = resolve;
+      });
+
+      const time = this.currentTime;
+
+      this.audio.el.play().then(() => this.bufferPromise!.then()).then(() => {
+        this.timestamp = performance.now();
+
+        // We need to compensate for the time it took to load the buffer
+        // otherwise the audio will be out of sync of the timer we use to
+        // render updates
+        if (this.audio?.el) {
+          // This must not be notifying of this adjustment otherwise it can cause sync issues and near infinite loops
+          this.setCurrentTime(time);
+          this.audio.el.currentTime = this.currentTime;
+          this.watch();
+        }
+      });
+    }
   }
 
   private playSelection(from?: number, to?: number) {
@@ -225,32 +300,36 @@ export class Player extends Destructable {
     return { start, end };
   }
 
-  private recreateSource() {
-    if (this.connected) {
-      this.disconnectSource();
-    }
-    this.connectSource();
-  }
-
   private connectSource() {
     if (this.isDestroyed || !this.audio || this.connected) return;
     this.connected = true;
-    this.audio.connect();
+
+    // Control pausing playback with checks to whether the audio has been asynchronously played already
+    // This is to prevent DomException: The play() request was interrupted by a call to pause()
+    if (this.canPause) {
+      this.audio.disconnect();
+    }
   }
 
   private disconnectSource() {
     if (this.isDestroyed || !this.audio || !this.connected) return;
     this.connected = false;
-    this.audio.source?.removeEventListener('ended', this.handleEnded);
-    this.audio.source?.stop(0);
-    this.audio.disconnect();
+
+    if (this.audio.el) {
+      this.audio.el.removeEventListener('ended', this.handleEnded);
+    }
+
+    // Control pausing playback with checks to whether the audio has been asynchronously played already
+    // This is to prevent DomException: The play() request was interrupted by a call to pause()
+    if (this.canPause) {
+      this.audio.disconnect();
+    }
   }
 
   private cleanupSource() {
     if (this.isDestroyed || !this.audio) return;
     this.disconnectSource();
-
-    delete this.audio.source;
+    this.audio.destroy();
     delete this.audio;
   }
 
@@ -273,18 +352,25 @@ export class Player extends Destructable {
     }
   }
 
-  private updateCurrentTime(forceTimeToEnd?: boolean) {
+  private updateCurrentTime(forceEnd = false) {
     const now = performance.now();
-    const tick = (( now - this.timestamp) / 1000) * this.rate;
+    const tick = ((now - this.timestamp) / 1000) * this.rate;
 
     this.timestamp = now;
 
     const end = this.loop?.end ?? this.duration;
 
-    const newTime = forceTimeToEnd ? this.duration : clamp(this.time + tick, 0, end); 
+    const newTime = forceEnd ? this.duration : clamp(this.time + tick, 0, end); 
 
     this.time = newTime;
-    this.wf.invoke('playing', [this.time]);
+
+    if (!this.loop && this.time >= this.duration - tick) {
+      this.time = this.duration;
+      this.wf.invoke('playing', [this.duration]);
+      this.playEnded();
+    } else {
+      this.wf.invoke('playing', [this.time]);
+    }
   }
 
   private stopWatch() {

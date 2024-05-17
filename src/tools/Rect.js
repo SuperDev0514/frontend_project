@@ -1,5 +1,6 @@
 import { types } from 'mobx-state-tree';
 
+
 import BaseTool, { DEFAULT_DIMENSIONS } from './Base';
 import ToolMixin from '../mixins/Tool';
 import { ThreePointsDrawingTool, TwoPointsDrawingTool } from '../mixins/DrawingTool';
@@ -11,7 +12,6 @@ const _BaseNPointTool = types
     group: 'segmentation',
     smart: true,
     shortcut: 'R',
-    isDrawingTool: true,
   })
   .views(self => {
     const Super = {
@@ -56,7 +56,7 @@ const _BaseNPointTool = types
         return !self.current() && Super.isIncorrectLabel();
       },
       canStart() {
-        return self.current() === null;
+        return self.current() === null && !self.annotation.isReadOnly();
       },
 
       current() {
@@ -73,6 +73,7 @@ const _BaseNPointTool = types
   }));
 
 const _Tool = types
+
   .model('RectangleTool', {
     shortcut: 'R',
   })
@@ -86,8 +87,9 @@ const _Tool = types
         : NodeViews.RectRegionModel.icon;
     },
   }));
-  
+
 const _Tool3Point = types
+
   .model('Rectangle3PointTool', {
     shortcut: 'shift+R',
   })

@@ -8,6 +8,7 @@ import {
   MessageOutlined
 } from '@ant-design/icons';
 
+
 import './Node.styl';
 import { Block, Elem } from '../../utils/bem';
 import { IconBrushTool, IconBrushToolSmart, IconCircleTool, IconCircleToolSmart, IconKeypointsTool, IconKeypointsToolSmart, IconPolygonTool, IconPolygonToolSmart, IconRectangle3PointTool, IconRectangle3PointToolSmart, IconRectangleTool, IconRectangleToolSmart, IconText, IconWarning } from '../../assets/icons';
@@ -58,6 +59,7 @@ const NodeViews = {
   }),
 
   Rect3PointRegionModel: NodeView({
+
     name: 'Rect3Point',
     icon: IconRectangle3PointTool,
     altIcon: IconRectangle3PointToolSmart,

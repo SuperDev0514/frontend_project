@@ -1,7 +1,9 @@
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Waveform, WaveformOptions } from '../Waveform';
-import { Layer } from '../Visual/Layer';
+
+import { FF_LSDV_3012, isFF } from '../../../utils/feature-flags';
 import { isTimeRelativelySimilar } from '../Common/Utils';
+import { Layer } from '../Visual/Layer';
+import { Waveform, WaveformOptions } from '../Waveform';
 
 export const useWaveform = (
   containter: MutableRefObject<HTMLElement | null | undefined>,
@@ -10,11 +12,13 @@ export const useWaveform = (
     onSeek?: (time: number) => void,
     onPlaying?: (playing: boolean) => void,
     onRateChange?: (rate: number) => void,
+    onError?: (error: Error) => void,
     autoLoad?: boolean,
+    showLabels?: boolean,
   },
 ) => {
   const waveform = useRef<Waveform>();
-
+  const { showLabels = true } = options;
   const [zoom, setZoom] = useState(1);
   const [volume, setVolume] = useState(options?.volume ?? 1);
   const [playing, setPlaying] = useState(false);
@@ -37,7 +41,6 @@ export const useWaveform = (
     }
 
     wf.on('load', () => {
-      setDuration(wf.duration);
       options?.onLoad?.(wf);
     });
     wf.on('play', () => {
@@ -45,6 +48,9 @@ export const useWaveform = (
     });
     wf.on('pause', () => {
       setPlaying(false);
+    });
+    wf.on('error', (error) => {
+      options?.onError?.(error);
     });
     wf.on('playing', (time: number) => {
       if (playing && !isTimeRelativelySimilar(time, currentTime, duration)) {
@@ -60,9 +66,10 @@ export const useWaveform = (
     });
     wf.on('zoom', setZoom);
     wf.on('muted', setMuted);
-    wf.on('volumeChange', setVolume);
+    wf.on('durationChanged', setDuration);
+    wf.on('volumeChanged', setVolume);
     wf.on('rateChanged', (newRate) => {
-      if (newRate !== rate) {
+      if (isFF(FF_LSDV_3012) || newRate !== rate) {
         options?.onRateChange?.(newRate);
         setRate(newRate);
       }
@@ -127,6 +134,10 @@ export const useWaveform = (
       waveform.current.muted = muted;
     }
   }, [muted]);
+
+  useEffect(() => {
+    waveform.current?.updateLabelVisibility(showLabels);
+  }, [showLabels]);
 
   return {
     waveform,
