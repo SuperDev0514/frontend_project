@@ -1,21 +1,21 @@
-import React from "react";
-import { Rate } from "antd";
-import { inject, observer } from "mobx-react";
-import { types } from "mobx-state-tree";
-import { StarOutlined } from "@ant-design/icons";
+import React from 'react';
+import { Rate } from 'antd';
+import { inject, observer } from 'mobx-react';
+import { types } from 'mobx-state-tree';
+import { StarOutlined } from '@ant-design/icons';
 
-import RequiredMixin from "../../mixins/Required";
-import PerRegionMixin from "../../mixins/PerRegion";
-import InfoModal from "../../components/Infomodal/Infomodal";
-import Registry from "../../core/Registry";
-import { guidGenerator } from "../../core/Helpers";
-import ControlBase from "./Base";
-import { AnnotationMixin } from "../../mixins/AnnotationMixin";
+import RequiredMixin from '../../mixins/Required';
+import PerRegionMixin from '../../mixins/PerRegion';
+import InfoModal from '../../components/Infomodal/Infomodal';
+import Registry from '../../core/Registry';
+import { guidGenerator } from '../../core/Helpers';
+import ControlBase from './Base';
+import { AnnotationMixin } from '../../mixins/AnnotationMixin';
 
 /**
- * The Rating tag adds a rating selection to the labeling interface. Use for labeling tasks involving ratings.
+ * The `Rating` tag adds a rating selection to the labeling interface. Use for labeling tasks involving ratings.
  *
- * Use with the following data types: audio, image, HTML, paragraphs, text, time series, video
+ * Use with the following data types: audio, image, HTML, paragraphs, text, time series, video.
  *
  * @example
  * <!--Basic labeling configuration to rate the content of a text passage -->
@@ -39,13 +39,12 @@ import { AnnotationMixin } from "../../mixins/AnnotationMixin";
  * @param {boolean} [perRegion]               - Use this tag to rate regions instead of the whole object
  */
 const TagAttrs = types.model({
-  name: types.identifier,
   toname: types.maybeNull(types.string),
 
-  maxrating: types.optional(types.string, "5"),
-  icon: types.optional(types.string, "star"),
-  size: types.optional(types.string, "medium"),
-  defaultvalue: types.optional(types.string, "0"),
+  maxrating: types.optional(types.string, '5'),
+  icon: types.optional(types.string, 'star'),
+  size: types.optional(types.string, 'medium'),
+  defaultvalue: types.optional(types.string, '0'),
 
   hotkey: types.maybeNull(types.string),
 });
@@ -53,7 +52,7 @@ const TagAttrs = types.model({
 const Model = types
   .model({
     pid: types.optional(types.string, guidGenerator),
-    type: "rating",
+    type: 'rating',
     rating: types.maybeNull(types.number),
   })
   .views(self => ({
@@ -85,11 +84,7 @@ const Model = types
   }))
   .actions(self => ({
     getSelectedString() {
-      return self.rating + " star";
-    },
-
-    copyState(obj) {
-      self.setRating(obj.rating);
+      return self.rating + ' star';
     },
 
     needsUpdate() {
@@ -139,45 +134,23 @@ const Model = types
     onHotKey() {
       return self.increaseValue();
     },
-
-    toStateJSON() {
-      if (self.rating) {
-        const toname = self.toname || self.name;
-
-        return {
-          id: self.pid,
-          from_name: self.name,
-          to_name: toname,
-          type: self.type,
-          value: {
-            rating: self.rating,
-          },
-        };
-      }
-    },
-
-    fromStateJSON(obj) {
-      if (obj.id) self.pid = obj.id;
-
-      self.rating = obj.value.rating;
-    },
   }));
 
-const RatingModel = types.compose("RatingModel", ControlBase, TagAttrs, Model, RequiredMixin, PerRegionMixin, AnnotationMixin);
+const RatingModel = types.compose('RatingModel', ControlBase, TagAttrs, Model, RequiredMixin, PerRegionMixin, AnnotationMixin);
 
-const HtxRating = inject("store")(
+const HtxRating = inject('store')(
   observer(({ item, store }) => {
     let iconSize;
 
-    if (item.size === "small") {
+    if (item.size === 'small') {
       iconSize = 15;
-    } else if (item.size === "medium") {
+    } else if (item.size === 'medium') {
       iconSize = 25;
-    } else if (item.size === "large") {
+    } else if (item.size === 'large') {
       iconSize = 40;
     }
 
-    const visibleStyle = item.perRegionVisible() ? {} : { display: "none" };
+    const visibleStyle = item.perRegionVisible() ? {} : { display: 'none' };
 
     // rc-rate component listens for keypress event and hit the star if the key is Enter
     // but it doesn't check for any modifiers, so it removes star during submit (ctrl+enter)
@@ -203,13 +176,13 @@ const HtxRating = inject("store")(
           onChange={item.setRating}
         />
         {store.settings.enableTooltips && store.settings.enableHotkeys && item.hotkey && (
-          <sup style={{ fontSize: "9px" }}>[{item.hotkey}]</sup>
+          <sup style={{ fontSize: '9px' }}>[{item.hotkey}]</sup>
         )}
       </div>
     );
   }),
 );
 
-Registry.addTag("rating", RatingModel, HtxRating);
+Registry.addTag('rating', RatingModel, HtxRating);
 
 export { HtxRating, RatingModel };

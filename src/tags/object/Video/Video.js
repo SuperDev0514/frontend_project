@@ -1,12 +1,17 @@
-import { getRoot, types } from "mobx-state-tree";
-import React from "react";
+import { getRoot, types } from 'mobx-state-tree';
+import React from 'react';
 
-import { AnnotationMixin } from "../../../mixins/AnnotationMixin";
-import ProcessAttrsMixin from "../../../mixins/ProcessAttrs";
-import ObjectBase from "../Base";
-import { SyncMixin } from "../../../mixins/SyncMixin";
+import { isTimeRelativelySimilar } from '../../../lib/AudioUltra';
+import { AnnotationMixin } from '../../../mixins/AnnotationMixin';
 import IsReadyMixin from '../../../mixins/IsReadyMixin';
-import Types from "../../../core/Types";
+import ProcessAttrsMixin from '../../../mixins/ProcessAttrs';
+import { SyncableMixin } from '../../../mixins/Syncable';
+import { SyncMixin } from '../../../mixins/SyncMixin';
+import { parseValue } from '../../../utils/data';
+import { FF_DEV_2715, FF_LSDV_3012, isFF } from '../../../utils/feature-flags';
+import ObjectBase from '../Base';
+
+const isFFDev2715 = isFF(FF_DEV_2715);
 
 /**
  * Video tag plays a simple video file. Use for video annotation tasks such as classification and transcription.
@@ -37,31 +42,31 @@ import Types from "../../../core/Types";
  * @meta_description Customize Label Studio with the Video tag for basic video annotation tasks for machine learning and data science projects.
  * @param {string} name Name of the element
  * @param {string} value URL of the video
- * @param {number} [frameRate=24] videp frame rate per second; default is 24
+ * @param {number} [frameRate=24] video frame rate per second; default is 24; can use task data like `$fps`
  * @param {string} [sync] object name to sync with
  * @param {boolean} [muted=false] muted video
- * @param {number} [heihght=600] heihght of the video
+ * @param {number} [height=600] height of the video
  */
 
 const TagAttrs = types.model({
-  name: types.identifier,
   value: types.maybeNull(types.string),
   hotkey: types.maybeNull(types.string),
-  framerate: types.optional(types.string, "24"),
-  height: types.optional(types.string, "600"),
+  framerate: types.optional(types.string, '24'),
+  height: types.optional(types.string, '600'),
   muted: false,
 });
 
 const Model = types
   .model({
-    type: "video",
-    _value: types.optional(types.string, ""),
+    type: 'video',
+    _value: types.optional(types.string, ''),
     // special flag to store labels inside result, but under original type
     // @todo make it able to be disabled
     mergeLabelsAndResults: true,
   })
   .volatile(() => ({
     errors: [],
+    speed: 1,
     ref: React.createRef(),
     frame: 1,
     length: 1,
@@ -69,10 +74,6 @@ const Model = types
   .views(self => ({
     get store() {
       return getRoot(self);
-    },
-
-    get annotation() {
-      return Types.getParentOfTypeString(self, "AnnotationStore")?.selected;
     },
 
     get regs() {
@@ -84,11 +85,15 @@ const Model = types
     },
 
     control() {
-      return self.annotation.toNames.get(self.name)?.find(s => !s.type.endsWith("labels"));
+      return self.annotation.toNames.get(self.name)?.find(s => !s.type.endsWith('labels'));
+    },
+
+    videoControl() {
+      return self.annotation.toNames.get(self.name)?.find(s => s.type.includes('video'));
     },
 
     states() {
-      return self.annotation.toNames.get(self.name)?.filter(s => s.type.endsWith("labels"));
+      return self.annotation.toNames.get(self.name)?.filter(s => s.type.endsWith('labels'));
     },
 
     activeStates() {
@@ -105,95 +110,258 @@ const Model = types
   }))
   .actions(self => ({
     afterCreate() {
-      const { framerate } = self;
+      // normalize framerate — should be string with number of frames per second
+      const framerate = Number(parseValue(self.framerate, self.store.task?.dataObj));
 
-      if (!framerate) self.framerate = 24;
-      else if (framerate < 1) self.framerate = 1 / framerate;
+      if (!framerate || isNaN(framerate)) self.framerate = '24';
+      else if (framerate < 1) self.framerate = String(1 / framerate);
+      else self.framerate = String(framerate);
+    },
+  }))
+  ////// Sync actions
+  .actions(!isFF(FF_LSDV_3012) ? (() => ({})) : self => ({
+    ////// Outgoing
+
+    /**
+     * Wrapper to always send important data
+     * @param {string} event 
+     * @param {any} data 
+     */
+    triggerSync(event, data) {
+      if (!self.ref.current) return;
+
+      self.syncSend({
+        playing: self.ref.current.playing,
+        time: self.ref.current.currentTime,
+        ...data,
+      }, event);
     },
 
-    handleSyncSeek(time) {
-      if (self.ref.current) {
-        self.ref.current.currentTime = time;
+    triggerSyncPlay() {
+      self.triggerSync('play', { playing: true });
+    },
+
+    triggerSyncPause() {
+      self.triggerSync('pause', { playing: false });
+    },
+
+    ////// Incoming
+
+    registerSyncHandlers() {
+      ['play', 'pause', 'seek'].forEach(event => {
+        self.syncHandlers.set(event, self.handleSync);
+      });
+      self.syncHandlers.set('speed', self.handleSyncSpeed);
+    },
+
+    handleSync(data) {
+      if (!self.ref.current) return;
+
+      const video = self.ref.current;
+
+      if (data.playing) {
+        if (!video.playing) video.play();
+      } else {
+        if (video.playing) video.pause();
       }
+
+      if (data.speed) {
+        self.speed = data.speed;
+      }
+
+      video.currentTime = data.time;
     },
 
-    handleSyncPlay() {
-      self.ref.current?.play();
-    },
-
-    handleSyncPause() {
-      self.ref.current?.pause();
+    handleSyncSpeed({ speed }) {
+      self.speed = speed;
     },
 
     handleSeek() {
-      if (self.ref.current) {
-        self.triggerSyncSeek(self.ref.current.currentTime);
-      }
+      self.triggerSync('seek');
     },
 
-    needsUpdate() {
-      if (self.sync) {
-        if (self.syncedObject?.type?.startsWith("audio")) {
-          self.muted = true;
+    syncMuted(muted) {
+      self.muted = muted;
+    },
+  }))
+  .actions(self => {
+    if (isFF(FF_LSDV_3012)) return {};
+
+    const Super = {
+      triggerSyncPlay: self.triggerSyncPlay,
+      triggerSyncPause: self.triggerSyncPause,
+    };
+
+    return {
+      triggerSyncPlay() {
+        // Audio v3
+        if (isFFDev2715) {
+          if (self.syncedObject) {
+            Super.triggerSyncPlay();
+          } else {
+            self.handleSyncPlay();
+          }
         }
-      }
-    },
+        // Audio v1,v2
+        else {
+          Super.triggerSyncPlay();
+        }
+      },
 
-    setLength(length) {
-      self.length = length;
-    },
+      triggerSyncPause() {
+        // Audio v3
+        if (isFFDev2715) {
+          if (self.syncedObject) {
+            Super.triggerSyncPause();
+          } else {
+            self.handleSyncPause();
+          }
+        }
+        // Audio v1,v2
+        else {
+          Super.triggerSyncPause();
+        }
+      },
 
-    setOnlyFrame(frame) {
-      if (self.frame !== frame) {
-        self.frame = frame;
-      }
-    },
+      handleSyncSeek(time) {
+        // Audio v3
+        if (isFFDev2715) {
+          if (self.syncedDuration && time >= self.syncedDuration) {
+            self.ref.current.currentTime = self.ref.current.duration;
+          } else if (self.ref.current && !isTimeRelativelySimilar(self.ref.current.currentTime, time, self.ref.current.duration)) {
+            self.ref.current.currentTime = time;
+          }
+        }
+        // Audio v2,v1
+        else {
+          if (self.ref.current) {
+            self.ref.current.currentTime = time;
+          }
+        }
+      },
 
-    setFrame(frame) {
-      if (self.frame !== frame) {
-        self.frame = frame;
-        self.ref.current.currentTime = frame / self.framerate;
-      }
-    },
+      handleSyncPlay() {
+        // Audio v3
+        if (isFFDev2715) {
+          if (!self.isCurrentlyPlaying) {
+            self.isCurrentlyPlaying = true;
+            try {
+              self.ref.current?.play();
+            } catch {
+              // do nothing, just ignore the DomException
+              // just in case the video was in the midst of syncing
+            }
+          }
+        }
+        // Audio v2,v1
+        else {
+          self.ref.current?.play();
+        }
+      },
 
-    addRegion(data) {
-      const control = self.control();
+      handleSyncPause() {
+        // Audio v3
+        if (isFFDev2715) {
+          if (self.isCurrentlyPlaying) {
+            self.isCurrentlyPlaying = false;
+            try {
+              self.ref.current?.pause();
+            } catch {
+              // do nothing, just ignore the DomException
+              // just in case the video was in the midst of syncing
+            }
+          }
+        }
+        // Audio v2,v1
+        else {
+          self.ref.current?.pause();
+        }
+      },
 
-      const sequence = [
-        {
-          frame: self.frame,
-          enabled: true,
-          rotation: 0,
-          ...data,
-        },
-      ];
+      handleSyncDuration(duration) {
+        if (!isFFDev2715) return;
+        if (self.ref.current) {
+          self.setLength(duration * self.framerate);
+        }
+      },
 
-      if (!control) {
-        console.error("NO CONTROL");
-        return;
-      }
+      handleSyncSpeed(speed) {
+        self.speed = speed;
+      },
 
-      const area = self.annotation.createResult({ sequence }, {}, control, self);
+      handleSeek() {
+        if (self.ref.current) {
+          self.triggerSyncSeek(self.ref.current.currentTime);
+        }
+      },
 
-      // add labels
-      self.activeStates().forEach(state => {
-        area.setValue(state);
-      });
+      needsUpdate() {
+        if (self.sync) {
+          if (self.syncedObject?.type?.startsWith('audio')) {
+            self.muted = true;
+          }
+        }
+      },
+    };
+  })
+  .actions(self => {
+    return {
+      setLength(length) {
+        self.length = length;
+      },
 
-      return area;
-    },
+      setOnlyFrame(frame) {
+        if (self.frame !== frame) {
+          self.frame = frame;
+        }
+      },
 
-    deleteRegion(id) {
-      self.findRegion(id)?.deleteRegion();
-    },
+      setFrame(frame) {
+        if (self.frame !== frame && self.framerate) {
+          self.frame = frame;
+          self.ref.current.currentTime = frame / self.framerate;
+        }
+      },
 
-    findRegion(id) {
-      return self.regs.find(reg => reg.cleanId === id);
-    },
-  }));
+      addRegion(data) {
+        const control = self.videoControl() ?? self.control();
 
-export const VideoModel = types.compose("VideoModel",
-  SyncMixin,
+        const sequence = [
+          {
+            frame: self.frame,
+            enabled: true,
+            rotation: 0,
+            ...data,
+          },
+        ];
+
+        if (!control) {
+          console.error('NO CONTROL');
+          return;
+        }
+
+        const area = self.annotation.createResult({ sequence }, {}, control, self);
+
+        // add labels
+        self.activeStates().forEach(state => {
+          area.setValue(state);
+        });
+
+        return area;
+      },
+
+      deleteRegion(id) {
+        self.findRegion(id)?.deleteRegion();
+      },
+
+      findRegion(id) {
+        return self.regs.find(reg => reg.cleanId === id);
+      },
+    };
+  });
+
+export const VideoModel = types.compose('VideoModel',
+  isFF(FF_LSDV_3012) ? SyncableMixin : SyncMixin,
   TagAttrs,
   ProcessAttrsMixin,
   ObjectBase,
