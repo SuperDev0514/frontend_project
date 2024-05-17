@@ -137,6 +137,7 @@ export default class Grid extends Component {
     if (next < 0 || next > count - 1) return;
     const newPosition = children[next].offsetLeft;
 
+
     container.scrollTo({ left: newPosition, top: 0, behavior: 'smooth' });
   };
 

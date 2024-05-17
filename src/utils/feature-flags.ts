@@ -185,168 +185,18 @@ export const FF_LSDV_4583_6 = 'fflag_feat_front_lsdv_4583_6_images_preloading_sh
  */
 export const FF_LSDV_3009 = 'fflag_fix_font_lsdv_3009_draft_saving_stuck_130223_short';
 
-/**
- * Allows to count time spend on textarea results and store it to lead_time meta field
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4600_lead_time_27072023_short
- */
-export const FF_LEAD_TIME = 'fflag_fix_front_lsdv_4600_lead_time_27072023_short';
 
-/**
- * Adding "skipDuplicates" parameter for <TextArea /> to preventing adding duplicate entries
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_4659_skipduplicates_060323_short
- */
-export const FF_LSDV_4659 = 'fflag_feat_front_lsdv_4659_skipduplicates_060323_short';
 
-/**
- * Reworking of RichText to optimize its work with DOM and decrease response time with a large number of regions.
- * It also fixes scenarios of working with hidden regions
- * and edge cases for creating spans inside other spans.
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_4620_richtext_opimization_060423_short
- */
-export const FF_LSDV_4620_3 = 'fflag_feat_front_lsdv_4620_richtext_opimization_060423_short';
+export const FF_DEV_2480 = "ff_dev_2480_convenient_offsets_270522_short";
 
-/**
- * Fixes memory leaks in label studio frontend relative to mobx-state-tree and react usage
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4620_memory_leaks_100723_short
- */
-export const FF_LSDV_4620_3_ML = 'fflag_fix_front_lsdv_4620_memory_leaks_100723_short';
+export const FF_DEV_2132 = "ff_front_dev_2132_rotating_bounding_box";
 
-/**
- * Improving the responsiveness of the interface when working with the list of regions in the outliner
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_4620_outliner_optimization_310723_short
- */
-export const FF_OUTLINER_OPTIM = 'fflag_feat_front_lsdv_4620_outliner_optimization_310723_short';
 
-/**
- * Fixes Rect3PointTool behaviour in relative coords mode.
- * It also fixes disappearing regions in degenerate cases.
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4673_rect3point_relative_310523_short
- */
-export const FF_LSDV_4673 = 'fflag_fix_front_lsdv_4673_rect3point_relative_310523_short';
+export const FF_DEV_2458 = "ff_front_dev_2458_comments_for_skip_250522_short";
 
-/**
- * Fixes how presigned urls are generated and accessed to remove possibility of CORS errors.
- */
-export const FF_LSDV_4711 = 'fflag_fix_all_lsdv_4711_cors_errors_accessing_task_data_short';
+export const FF_DEV_1442 = "ff_front_dev_1442_unselect_shape_on_click_outside_080622_short";
 
-/**
- * Preventing creating duplicates in TextArea results with "skipDuplicates" parameter during editing.
- * It also prevent creating new history steps on every change during editing textarea results.
- *
- * @see FF_LSDV_4659: To enable `skipDuplicates` parameter
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_4712_skipduplicates_editing_110423_short
- */
-export const FF_LSDV_4712 = 'fflag_feat_front_lsdv_4712_skipduplicates_editing_110423_short';
-
-/**
- * New Ranker tag; flag is used for `deleteAllRegions()` optimization
- */
-export const FF_LSDV_4832 = 'fflag_feat_front_lsdv_4832_new_ranker_tag_120423_short';
-
-/**
- * Fixing issue with missed steps in timeseries with optimized data and zoom
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4881_timeseties_points_missing_140423_short
- */
-export const FF_LSDV_4881 = 'fflag_fix_front_lsdv_4881_timeseries_points_missing_140423_short';
-
-/** Fix "No Label" for Dynamic Labels by switching off missing labels removal */
-export const FF_LSDV_4988 = 'fflag_fix_front_lsdv_4988_dynamic_no_label_120523_short';
-
-/**
- * Fixing issues related to selection tool functional (selecting hidden regions, onClick in Konva, interaction with regions inside selection area)
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4930_selection_tool_fixes_240423_short
- */
-export const FF_LSDV_4930 = 'fflag_fix_front_lsdv_4930_selection_tool_fixes_240423_short';
-
-/**
- * Restore "hide all regions" button functionality in the outliner
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4992_hide_all_regions_04052023_short
- */
-export const FF_LSDV_4992 = 'fflag_fix_front_lsdv_4992_hide_all_regions_04052023_short';
-
-/**
- * Resetting shared stores on task change to correctly generate dynamic children
- * @see: fflag_fix_front_dev_3617_taxonomy_memory_leaks_fix: To enable shared store
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4998_missed_dynamic_children_030523_short
- */
-export const FF_LSDV_4998 = 'fflag_fix_front_lsdv_4998_missed_dynamic_children_030523_short';
-
-/**
- * Add ability to show hints while hover over the choice
- */
-export const FF_PROD_309 = 'fflag_feat_front_prod_309_choice_hint_080523_short';
-
-/**
- * Fix delay on double-click interactions in Image Segmentation
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_5248_double_click_delay_280823_short
- */
-export const FF_DBLCLICK_DELAY = 'fflag_fix_front_lsdv_5248_double_click_delay_280823_short';
-
-/**
- * Allow to load Taxonomy from remote API
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_5451_async_taxonomy_110823_short
- */
-export const FF_TAXONOMY_ASYNC = 'fflag_feat_front_lsdv_5451_async_taxonomy_110823_short';
-
-export const FF_LEAP_218 = 'fflag_fix_front_leap_218_improve_performance_of_taxonomy_search_short';
-
-/**
- * Allow to label NER directly with Taxonomy instead of Labels
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_5452_taxonomy_labeling_110823_short
- */
-export const FF_TAXONOMY_LABELING = 'fflag_feat_front_lsdv_5452_taxonomy_labeling_110823_short';
-
-/**
- * Fix task count on projects with over 100 tasks (switch from task history to queue count)
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_all_optic_79_task_count_is_wrong_short/targeting
- */
-
-export const FF_TASK_COUNT_FIX = 'fflag_fix_all_optic_79_task_count_is_wrong_short';
-/** 
-* Annotator workflow control for lead time calculation
- */
-export const FF_PROD_E_111 = 'fflag_feat_front_prod_e_111_annotator_workflow_control_short';
-
-/**
- * Adding a property snap to Polygon, PolygonLabels, KeyPoint and KeyPoinLabels to snap points to image pixel when user sets snap="pixel".
- */
-export const FF_SNAP_TO_PIXEL = 'fflag_feat_front_lsdv_5518_snap_to_pixel_130923_short';
-
-/** Fix taxonomy items init with DEV-3617 FF on; this allows to correctly preselect items on init */
-export const FF_TAXONOMY_SELECTED = 'fflag_fix_front_leap_149_taxonomy_selected_true_short';
-
-/** Skip video to region start when it's selected in the outliner */
-export const FF_LEAP_187 = 'fflag_feat_front_leap_187_video_seek_on_select_short';
-
-/** Select annotation only once during store init and trigger the rest from this select */
-export const FF_SIMPLE_INIT = 'fflag_fix_front_leap_443_select_annotation_once';
-
-/**
- * Optimize stage rendering for large number of regions and zoom interactions
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_leap_32_zoom_perf_190923_short/targeting
- */
-export const FF_ZOOM_OPTIM = 'fflag_fix_front_leap_32_zoom_perf_190923_short';
-
-export const FF_SAFE_TEXT = 'fflag_fix_leap_466_text_sanitization';
-
-export const FF_MULTI_OBJECT_HOTKEYS = 'fflag_fix_leap_246_multi_object_hotkeys_160124_short';
-
-Object.assign(window, {
-  APP_SETTINGS: {
-    ...(window.APP_SETTINGS ?? {}),
-    feature_flags: {
-      ...(window.APP_SETTINGS?.feature_flags ?? {}),
-      ...(window.FEATURE_FLAGS ?? {}),
-    },
-  },
-});
+export const FF_DEV_2431 = "ff_front_dev_2431_delete_polygon_points_080622_short";
 
 function getFeatureFlags() {
   return {

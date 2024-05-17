@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { FC } from 'react';
 import { Block, Elem } from '../../../utils/bem';
@@ -52,6 +53,7 @@ const Content: FC<any> = observer(({
     </>
   );
 });
+
 
 
 const CommentsTab: FC<any> = inject('store')(observer(({ store }) => {
@@ -162,12 +164,14 @@ const GeneralPanel: FC<any> = inject('store')(observer(({ store, currentEntity }
           />
         </Elem>
       </Elem>
+
       {store.hasInterface('annotations:comments') && store.commentStore.isCommentable && (
         <Elem name="section">
           <Elem name="section-head">
             Comments
           </Elem>
           <Elem name="section-content">
+
             <CommentsComponent
               annotationStore={store.annotationStore} 
               commentStore={store.commentStore}
@@ -179,6 +183,7 @@ const GeneralPanel: FC<any> = inject('store')(observer(({ store, currentEntity }
     </>
   );
 }));
+
 
 GeneralPanel.displayName = 'GeneralPanel';
 

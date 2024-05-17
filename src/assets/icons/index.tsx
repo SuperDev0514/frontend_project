@@ -12,6 +12,7 @@ export { ReactComponent as LsParentLink } from './parent-link.svg';
 export { ReactComponent as LsAnnotation } from './annotation.svg';
 export { ReactComponent as LsGrid } from './grid.svg';
 export { ReactComponent as LsSettings } from './settings.svg';
+
 export { ReactComponent as LsSettingsAlt } from './settings-alt.svg';
 export { ReactComponent as LsStar } from './star.svg';
 export { ReactComponent as LsStarOutline } from './star-outline.svg';
@@ -62,7 +63,9 @@ export { ReactComponent as IconRectangleTool } from './tools/rectangle-tool.svg'
 export { ReactComponent as IconRectangleToolSmart } from './tools/rectangle-tool-smart.svg';
 export { ReactComponent as IconRectangle3PointTool } from './tools/rectangle-3point-tool.svg';
 export { ReactComponent as IconRectangle3PointToolSmart } from './tools/rectangle-3point-tool-smart.svg';
+
 export { ReactComponent as IconMagicWandTool } from './tools/magic-wand-tool.svg';
+
 export { ReactComponent as IconEraserTool } from './tools/eraser-tool.svg';
 export { ReactComponent as IconHandTool } from './tools/hand-tool.svg';
 export { ReactComponent as IconBrightnessTool } from './tools/brightness-tool.svg';

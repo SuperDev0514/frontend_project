@@ -228,7 +228,8 @@ const RegionsMixin = types
       onClickRegion(ev) {
         const annotation = self.annotation;
 
-        if (!self.isReadOnly() && (self.isDrawing || annotation.isDrawing)) return;
+
+        if (self.editable && (self.isDrawing || annotation.isDrawing)) return;
 
         if (!self.isReadOnly() && annotation.relationMode) {
           annotation.addRelation(self);

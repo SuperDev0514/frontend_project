@@ -109,17 +109,7 @@ export const KonvaRegionMixin = types.model({})
         const annotation = self.annotation;
         const ev = e?.evt || e;
         const additiveMode = ev?.ctrlKey || ev?.metaKey;
-
         if (e) e.cancelBubble = true;
-
-        if (isFF(FF_DBLCLICK_DELAY)) {
-          const isDoubleClick = ev.detail === 2;
-
-          if (isDoubleClick) {
-            self.onDoubleClickRegion();
-            return;
-          }
-        }
 
         const selectAction = () => {
           self._selectArea(additiveMode);

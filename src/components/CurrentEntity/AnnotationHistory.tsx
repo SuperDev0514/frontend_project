@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { FC, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Tooltip } from 'antd';
@@ -13,6 +14,7 @@ import {
   IconCheck,
   IconDraftCreated,
   LsSparks
+
 } from '../../assets/icons';
 import { Space } from '../../common/Space/Space';
 import { Userpic } from '../../common/Userpic/Userpic';
@@ -56,6 +58,10 @@ const DraftState: FC<{
 }> = observer(({ annotation, inline, isSelected }) => {
   const hasChanges = annotation.history.hasChanges;
   const store = annotation.list; // @todo weird name
+  const dateCreated = !annotation.isDraftSaving && annotation.draftSaved;
+
+  const [hasUnsavedChanges, setChanges] = useState(false);
+
 
   const [hasUnsavedChanges, setChanges] = useState(false);
 
@@ -139,6 +145,7 @@ const AnnotationHistoryComponent: FC<any> = ({
                 annotationStore.selectHistory(isSelected ? null : item);
                 return;
               }
+
               if (hasChanges) {
                 annotation.saveDraftImmediately();
                 // wait for draft to be saved before switching to history
@@ -187,7 +194,9 @@ const HistoryItemComponent: FC<{
   const isPrediction = entity?.type === 'prediction';
 
   const reason = useMemo(() => {
-    switch (acceptedState) {
+
+    switch(acceptedState) {
+
       case 'accepted': return 'Accepted';
       case 'rejected': return 'Rejected';
       case 'fixed_and_accepted': return 'Fixed';
