@@ -1,11 +1,22 @@
 /* global inject */
 const { I } = inject();
 
-const Helpers = require("../tests/helpers");
+const Helpers = require('../tests/helpers');
 
 module.exports = {
-  _stageSelector: ".konvajs-content",
+  _stageSelector: '.konvajs-content',
   _stageBBox: { x: 0, y: 0, width: 0, height: 0 },
+
+  _toolBarSelector: '.lsf-toolbar',
+  _zoomPresetsSelector: '[title^="Zoom presets"]',
+
+  percToX(xPerc) {
+    return this._stageBBox.width * xPerc / 100;
+  },
+
+  percToY(yPerc) {
+    return this._stageBBox.height * yPerc / 100;
+  },
 
   async grabStageBBox() {
     const bbox = await I.grabElementBoundingRect(this._stageSelector);
@@ -21,9 +32,9 @@ module.exports = {
   },
 
   waitForImage() {
-    I.say("Waiting for image to be loaded");
+    I.say('Waiting for image to be loaded');
     I.executeScript(Helpers.waitForImage);
-    I.waitForVisible("canvas", 5);
+    I.waitForVisible('canvas', 5);
   },
 
   async getCanvasSize() {
@@ -84,7 +95,7 @@ module.exports = {
   },
 
   /**
-   * Get  pixel color at point
+   * Get pixel color at point
    * @param {number} x
    * @param {number} y
    * @param {number[]} rgbArray
@@ -125,7 +136,7 @@ module.exports = {
   /**
    * Mousedown - mousemove - mouseup drawing on the ImageView. Works in couple of lookForStage.
    * @example
-   * async AtImageView.lookForStage();
+   * await  AtImageView.lookForStage();
    * AtImageView.drawByDrag(50, 30, 200, 200);
    * @param x
    * @param y
@@ -142,7 +153,7 @@ module.exports = {
   /**
    * Click through the list of points on the ImageView. Works in couple of lookForStage.
    * @example
-   * async AtImageView.loolookkForStage();
+   * await  AtImageView.loolookkForStage();
    * AtImageView.drawByClickingPoints([[50,50],[100,50],[100,100],[50,100],[50,50]]);
    * @param {number[][]} points
    */
@@ -164,13 +175,13 @@ module.exports = {
   /**
    * Mousedown - mousemove - mouseup drawing through the list of points on the ImageView. Works in couple of lookForStage.
    * @example
-   * async AtImageView.lookForStage();
+   * await  AtImageView.lookForStage();
    * AtImageView.drawThroughPoints([[50,50],[200,100],[50,200],[300,300]]);
    * @param {number[][]} points - list of pairs of coords
    * @param {"steps"|"rate"} mode - mode of firing mousemove event
    * @param {number} parameter - parameter for mode
    */
-  drawThroughPoints(points, mode = "steps", parameter = 1) {
+  drawThroughPoints(points, mode = 'steps', parameter = 1) {
     I.scrollPageToTop();
     const calcSteps = {
       steps: () => parameter,
@@ -201,5 +212,15 @@ module.exports = {
   drawByClick(x, y) {
     I.scrollPageToTop();
     this.clickAt(x, y);
+  },
+
+  selectPanTool() {
+    I.say('Select pan tool');
+    I.pressKey('H');
+  },
+
+  selectMoveTool() {
+    I.say('Select move tool');
+    I.pressKey('V');
   },
 };

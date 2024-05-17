@@ -1,11 +1,15 @@
 // turn on headless mode when running with HEADLESS=true environment variable
 // HEADLESS=true npx codecept run
 const headless = process.env.HEADLESS;
+const port = process.env.LSF_PORT ?? 3000;
+const enableCoverage = process.env.COVERAGE === 'true';
+const fs = require('fs');
+const FRAGMENTS_PATH = './fragments/';
 
 module.exports.config = {
   timeout: 60 * 30, // Time out after 30 minutes
-  tests: "./tests/*.test.js",
-  output: "./output",
+  tests: './tests/**/*.test.js',
+  output: './output',
   helpers: {
     // Puppeteer: {
     //   url: "http://localhost:3000",
@@ -14,44 +18,43 @@ module.exports.config = {
     //   windowSize: "1200x900",
     // },
     Playwright: {
-      url: "http://localhost:3000",
+      url: `http://localhost:${port}`,
       show: !headless,
       restart: 'context',
       timeout: 60000, // Action timeout after 60 seconds
       waitForAction: headless ? 100 : 1200,
-      windowSize: "1200x900",
-      waitForNavigation: "networkidle",
-      browser: "chromium",
+      windowSize: '1200x900',
+      waitForNavigation: 'networkidle',
+      browser: 'chromium',
       trace: false,
       keepTraceForPassedTests: false,
     },
     MouseActions: {
-      require: "./helpers/MouseActions.js",
+      require: './helpers/MouseActions.js',
     },
     Selection: {
-      require: "./helpers/Selection.js",
+      require: './helpers/Selection.js',
+    },
+    Annotations: {
+      require: './helpers/Annotations.ts',
     },
   },
   include: {
-    I: "./steps_file.js",
-    LabelStudio: "./fragments/LabelStudio.js",
-    AtImageView: "./fragments/AtImageView.js",
-    AtAudioView: "./fragments/AtAudioView.js",
-    AtRichText: "./fragments/AtRichText.js",
-    AtSidebar: "./fragments/AtSidebar.js",
-    AtLabels: "./fragments/AtLabels.js",
-    AtSettings: "./fragments/AtSettings.js",
-    AtTopbar: "./fragments/AtTopbar.js",
-    ErrorsCollector: "./fragments/ErrorsCollector.js",
+    I: './steps_file.js',
+    ...(Object.fromEntries(fs.readdirSync(FRAGMENTS_PATH).map(path => {
+      const name = path.split('.')[0];
+
+      return [name, `${FRAGMENTS_PATH}${path}`];
+    }))),
   },
   bootstrap: null,
   mocha: {
     bail: true,
     reporterOptions: {
-      mochaFile: "output/result.xml",
+      mochaFile: 'output/result.xml',
     },
   },
-  name: "label-studio-frontend",
+  name: 'label-studio-frontend',
   plugins: {
     retryFailedStep: {
       enabled: true,
@@ -65,11 +68,25 @@ module.exports.config = {
         'have*',
       ],
     },
-    // For the future generations
     // coverage: {
     //   enabled: true,
-    //   coverageDir: "output/coverage",
+    //   coverageDir: 'output/coverage',
     // },
+    featureFlags: {
+      require: './plugins/featureFlags.js',
+      enabled: true,
+    },
+    istanbulCoverage: {
+      require: './plugins/istanbulСoverage.js',
+      enabled: enableCoverage,
+      uniqueFileName: true,
+      coverageDir: '../coverage',
+      actionCoverage: {
+        enabled: false,
+        include: ['**/src/**'],
+        exclude: ['**/common/**', '**/components/**'],
+      },
+    },
     screenshotOnFail: {
       enabled: true,
     },

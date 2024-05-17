@@ -1,12 +1,22 @@
-import { types } from "mobx-state-tree";
-import isMatch from "lodash.ismatch";
-import InfoModal from "../../components/Infomodal/Infomodal";
-import { AnnotationMixin } from "../../mixins/AnnotationMixin";
+import { types } from 'mobx-state-tree';
+import isMatch from 'lodash.ismatch';
+import InfoModal from '../../components/Infomodal/Infomodal';
+import { AnnotationMixin } from '../../mixins/AnnotationMixin';
+import { FF_DEV_3391, FF_DEV_3666, isFF } from '../../utils/feature-flags';
+import { BaseTag } from '../TagBase';
 
 const ObjectBase = types
   .model({
+    ...(isFF(FF_DEV_3391)
+      ? {
+        id: types.identifier,
+        name: types.string,
+      } : {
+        name: types.identifier,
+      }),
     // TODO there should be a better way to force an update
     _needsUpdate: types.optional(types.number, 0),
+    isObjectTag: true,
   })
   .views(self => ({
     findRegion(params) {
@@ -52,7 +62,15 @@ const ObjectBase = types
       // `checkMaxUsages` may unselect labels with already reached `maxUsages`
       const checkAndCollect = (list, s) => (s.checkMaxUsages ? list.concat(s.checkMaxUsages()) : list);
       const allStates = self.states() || [];
-      const exceeded = allStates.reduce(checkAndCollect, []);
+      let exceeded;
+
+      if (isFF(FF_DEV_3666)) {
+        exceeded = allStates.reduce(checkAndCollect, []).filter(e => e.selected);
+        exceeded.forEach(e => e.setSelected(false));
+      } else {
+        exceeded = allStates.reduce(checkAndCollect, []);
+      }
+
       const states = self.activeStates() || [];
 
       if (states.length === 0) {
@@ -73,4 +91,4 @@ const ObjectBase = types
     };
   });
 
-export default types.compose(ObjectBase, AnnotationMixin);
+export default types.compose(ObjectBase, BaseTag, AnnotationMixin);
