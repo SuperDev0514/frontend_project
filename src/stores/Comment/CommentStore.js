@@ -1,21 +1,22 @@
-import { flow, getEnv, getParent, getRoot, getSnapshot, types } from "mobx-state-tree";
-import uniqBy from "lodash/uniqBy";
-import Utils from "../../utils";
-import { Comment } from "./Comment";
-import { FF_DEV_3034, isFF } from "../../utils/feature-flags";
-import { delay } from "../../utils/utilities";
+
+import { flow, getEnv, getParent, getRoot, getSnapshot, types } from 'mobx-state-tree';
+import { when } from 'mobx';
+import uniqBy from 'lodash/uniqBy';
+import Utils from '../../utils';
+import { Comment } from './Comment';
+import { FF_DEV_3034, isFF } from '../../utils/feature-flags';
 
 export const CommentStore = types
-  .model("CommentStore", {
-    loading: types.optional(types.maybeNull(types.string), "list"),
+  .model('CommentStore', {
+    loading: types.optional(types.maybeNull(types.string), 'list'),
     comments: types.optional(types.array(Comment), []),
   })
   .volatile(() => ({
     addedCommentThisSession: false,
     commentFormSubmit: () => {},
-    currentComment: '',
+    currentComment: {},
     inputRef: {},
-    tooltipMessage: "",
+    tooltipMessage: '',
   }))
   .views(self => ({
     get store() {
@@ -41,7 +42,8 @@ export const CommentStore = types
       return getEnv(self).events;
     },
     get isListLoading() {
-      return self.loading === "list";
+
+      return self.loading === 'list';
     },
     get taskId() {
       return self.task?.id;
@@ -53,7 +55,7 @@ export const CommentStore = types
       return self.annotationId !== null && self.annotationId !== undefined;
     },
     get isCommentable() {
-      return !self.annotation || ["annotation"].includes(self.annotation.type);
+      return !self.annotation || ['annotation'].includes(self.annotation.type);
     },
     get queuedComments() {
       const queued = self.comments.filter(comment => !comment.isPersisted);
@@ -70,12 +72,12 @@ export const CommentStore = types
       const serializedComments = getSnapshot(commentsFilter === 'queued' ? self.queuedComments : self.comments);
       
       return {
-        comments: queueComments ? serializedComments.map(comment => ({ id: comment.id > 0 ? comment.id * -1 : comment.id, ...comment })): serializedComments,
+        comments: queueComments ? serializedComments.map(comment => ({ id: comment.id > 0 ? comment.id * -1 : comment.id, ...comment })) : serializedComments,
       };
     }
 
     function setCurrentComment(comment) {
-      self.currentComment = comment;
+      self.currentComment = { ...self.currentComment, [self.annotation.id]: comment };
     }
 
     function setCommentFormSubmit(submitCallback) {
@@ -106,11 +108,11 @@ export const CommentStore = types
       if (index > -1) {
         const snapshot = getSnapshot(comments[index]);
 
-        comments[index] = { ...snapshot, id : newComment.id || snapshot.id };
+        comments[index] = { ...snapshot, id: newComment.id || snapshot.id };
       }
     }
 
-    function removeCommentById(id)  {
+    function removeCommentById(id) {
       const comments = self.comments;
 
       const index = comments.findIndex(comment => comment.id === id);
@@ -130,7 +132,7 @@ export const CommentStore = types
       }
 
       try {
-        self.setLoading("persistQueuedComments");
+        self.setLoading('persistQueuedComments');
         for (const comment of toPersist) {
           if (self.annotationId) {
             comment.annotation = self.annotationId;
@@ -139,13 +141,13 @@ export const CommentStore = types
           } else {
             comment.task = self.taskId;
           }
-          const [persistedComment] = await self.sdk.invoke("comments:create", comment);
+          const [persistedComment] = await self.sdk.invoke('comments:create', comment);
 
           if (persistedComment) {
             self.replaceId(comment.id, persistedComment);
           }
         }
-      } catch(err) {
+      } catch (err) {
         console.error(err);
       } finally {
         self.setLoading(null);
@@ -153,23 +155,32 @@ export const CommentStore = types
     }
 
     const addComment = flow(function* (text) {
+      if (self.loading === 'addComment') return;
+
+      self.setLoading('addComment');
       const now = Date.now() * -1;
 
-      const comment =  {
+      const comment = {
         id: now,
         text,
+
         task: self.taskId,
         created_by: self.currentUser.id,
         created_at: Utils.UDate.currentISODate(),
       };
 
+
       let refetchList = false;
       const { annotation } = self;
 
       if (isFF(FF_DEV_3034) && !self.annotationId && !self.draftId) {
-        // rare case: draft is already saving, so just wait for it
-        if (annotation.versions.draft) {
-          yield delay(annotation.autosaveDelay);
+        // rare case: draft is already saving, commit the outstanding draft before adding a comment
+        if (annotation.history.hasChanges && !annotation.draftSaved) {
+          // commit the pending draft
+          annotation.saveDraftImmediately();
+
+          // wait for the draft to be saved entirely before adding the comment
+          yield when(() => annotation.draftSaved);
         } else {
           // replicate actions from autosave()
           // if versions.draft is empty, the current state (prediction actually) is in result
@@ -193,21 +204,21 @@ export const CommentStore = types
       self.setAddedCommentThisSession(true);
       if (self.canPersist) {
         try {
-          self.setLoading("addComment");
-
-          const [newComment] = yield self.sdk.invoke("comments:create", comment);
+          const [newComment] = yield self.sdk.invoke('comments:create', comment);
 
           if (newComment) {
             self.replaceId(now, newComment);
             self.setCurrentComment('');
             if (refetchList) self.listComments();
           }
-        } catch(err) {
+        } catch (err) {
           self.removeCommentById(now);
           throw err;
-        } finally{ 
+        } finally { 
           self.setLoading(null);
         }
+      } else {
+        self.setLoading(null);
       }
     });
 
@@ -222,6 +233,7 @@ export const CommentStore = types
         self.comments.replace(comments);
       }
     }
+
 
     function hasCache(key) {
       localStorage.getItem(`commentStore.${key}`) !== null;
@@ -259,7 +271,7 @@ export const CommentStore = types
               restoreIds.includes(comment.id) ? ({
                 id: comment.id > 0 ? comment.id * -1 : comment.id,
                 ...comment,
-              }): comment);
+              }) : comment);
           }
           self.setComments(restored.comments);
         }
@@ -270,18 +282,18 @@ export const CommentStore = types
       self.fromCache(key, { merge: true, queueRestored: true });
     }
 
-    const listComments = flow((function* ({ mounted = { current: true } } = {}) {
-      self.setComments([]);
+    const listComments = flow((function* ({ mounted = { current: true }, suppressClearComments } = {}) {
 
+      if (!suppressClearComments) self.setComments([]);
       if (!self.draftId && !self.annotationId) return;
 
       try {
         if (mounted.current) {
-          self.setLoading("list");
+          self.setLoading('list');
         }
 
         const annotation = self.annotationId;
-        const [comments] = yield self.sdk.invoke("comments:list", {
+        const [comments] = yield self.sdk.invoke('comments:list', {
           annotation,
           draft: self.draftId,
         });
@@ -289,7 +301,7 @@ export const CommentStore = types
         if (mounted.current && annotation === self.annotationId) {
           self.setComments(comments);
         }
-      } catch(err) {
+      } catch (err) {
         console.error(err);
       } finally {
         if (mounted.current) {

@@ -1,17 +1,16 @@
-import { isAlive, types } from "mobx-state-tree";
+import { isAlive, types } from 'mobx-state-tree';
 
-import BaseTool, { DEFAULT_DIMENSIONS } from "./Base";
-import ToolMixin from "../mixins/Tool";
-import { MultipleClicksDrawingTool } from "../mixins/DrawingTool";
-import { NodeViews } from "../components/Node/Node";
-import { observe } from "mobx";
-import { FF_DEV_2432, isFF } from "../utils/feature-flags";
+import BaseTool, { DEFAULT_DIMENSIONS } from './Base';
+import ToolMixin from '../mixins/Tool';
+import { MultipleClicksDrawingTool } from '../mixins/DrawingTool';
+import { NodeViews } from '../components/Node/Node';
+import { observe } from 'mobx';
+import { FF_DEV_2432, isFF } from '../utils/feature-flags';
 
 const _Tool = types
-  .model("PolygonTool", {
-    group: "segmentation",
-    shortcut: "P",
-    isDrawingTool: true,
+  .model('PolygonTool', {
+    group: 'segmentation',
+    shortcut: 'P',
   })
   .views(self => {
     const Super = {
@@ -27,20 +26,20 @@ const _Tool = types
         if (isFF(FF_DEV_2432) && poly && !isAlive(poly)) return null;
         if (poly && poly.closed) return null;
         if (poly === undefined) return null;
-        if (poly && poly.type !== "polygonregion") return null;
+        if (poly && poly.type !== 'polygonregion') return null;
 
         return poly;
       },
 
       get tagTypes() {
         return {
-          stateTypes: "polygonlabels",
-          controlTagTypes: ["polygonlabels", "polygon"],
+          stateTypes: 'polygonlabels',
+          controlTagTypes: ['polygonlabels', 'polygon'],
         };
       },
 
       get viewTooltip() {
-        return "Polygon region";
+        return 'Polygon region';
       },
       get iconComponent() {
         return self.dynamic
@@ -50,13 +49,6 @@ const _Tool = types
 
       get defaultDimensions() {
         return DEFAULT_DIMENSIONS.polygon;
-      },
-
-      moreRegionParams(obj) {
-        return {
-          x: obj.value.points[0][0],
-          y: obj.value.points[0][1],
-        };
       },
 
       createRegionOptions({ x, y }) {
@@ -94,7 +86,6 @@ const _Tool = types
 
     return {
       handleToolSwitch(tool) {
-
         self.stopListening();
         if (self.getCurrentArea()?.isDrawing && tool.toolName !== 'ZoomPanTool') {
           const shape = self.getCurrentArea()?.toJSON();
@@ -105,8 +96,8 @@ const _Tool = types
       },
       listenForClose() {
         closed = false;
-        disposer = observe(self.getCurrentArea(), "closed", () => {
-          if (self.getCurrentArea().closed && !closed) {
+        disposer = observe(self.getCurrentArea(), 'closed', () => {
+          if (self.getCurrentArea()?.closed && !closed) {
             self.finishDrawing();
           }
         }, true);
@@ -122,19 +113,15 @@ const _Tool = types
       },
 
       startDrawing(x, y) {
+        const point = self.control?.getSnappedPoint({ x, y });
+
         if (isFF(FF_DEV_2432)) {
-          self.annotation.history.freeze();
-          self.mode = "drawing";
-
-          self.initializeHotkeys();
-
-          self.currentArea = self.createRegion(self.createRegionOptions({ x, y }), true);
-
-          self.currentArea.setDrawing(true);
+          self.mode = 'drawing';
+          self.currentArea = self.createRegion(self.createRegionOptions({ x: point.x, y: point.y }), true);
+          self.setDrawing(true);
           self.applyActiveStates(self.currentArea);
-          self.annotation.setIsDrawing(true);
         } else {
-          Super.startDrawing(x, y);
+          Super.startDrawing(point.x, point.y);
         }
       },
 
@@ -143,24 +130,29 @@ const _Tool = types
           const { currentArea, control } = self;
 
           self.currentArea.notifyDrawingFinished();
-          self.currentArea.setDrawing(false);
+          self.setDrawing(false);
           self.currentArea = null;
-          self.annotation.setIsDrawing(false);
-          self.annotation.history.unfreeze();
-          self.mode = "viewing";
-          self.disposeHotkeys();
+          self.mode = 'viewing';
           self.annotation.afterCreateResult(currentArea, control);
         } else {
           Super._finishDrawing();
         }
       },
 
+      setDrawing(drawing) {
+        self.currentArea?.setDrawing(drawing);
+        self.annotation.setIsDrawing(drawing);
+      },
+
       deleteRegion() {
         if (isFF(FF_DEV_2432)) {
           const { currentArea } = self;
 
+          self.setDrawing(false);
           self.currentArea = null;
-          if (currentArea) currentArea.deleteRegion();
+          if (currentArea) {
+            currentArea.deleteRegion();
+          }
         } else {
           Super.deleteRegion();
         }
