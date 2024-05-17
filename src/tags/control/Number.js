@@ -37,6 +37,7 @@ import { FF_LSDV_4583, isFF } from '../../utils/feature-flags';
  * @param {number} [min]                      - Minimum number value
  * @param {number} [max]                      - Maximum number value
  * @param {number} [step=1]                   - Step for value increment/decrement
+
  * @param {number} [defaultValue]             - Default number value; will be added automatically to result for required fields
  * @param {string} [hotkey]                   - Hotkey for increasing number value
  * @param {boolean} [required=false]          - Whether number is required or not
@@ -197,6 +198,7 @@ const NumberModel = types.compose('NumberModel',
 
 const HtxNumber = inject('store')(
   observer(({ item, store }) => {
+
     const visibleStyle = item.perRegionVisible() ? { display: 'flex', alignItems: 'center' } : { display: 'none' };
     const sliderStyle = item.slider ? { padding: '9px 0px', border: 0 } : {};
     const disabled = item.isReadOnly();
@@ -204,6 +206,7 @@ const HtxNumber = inject('store')(
     return (
       <div className='lsf-number' style={visibleStyle}>
         <input
+
           disabled={disabled}
           style={sliderStyle}
           type={item.slider ? 'range' : 'number'}
@@ -214,6 +217,7 @@ const HtxNumber = inject('store')(
           max={isDefined(item.max) ? Number(item.max) : undefined}
           onChange={disabled ? undefined : item.onChange}
         />
+
         {item.slider && <output style={{ marginLeft: '5px' }}>{item.number ?? item.defaultvalue ?? ''}</output>}
         {store.settings.enableTooltips && store.settings.enableHotkeys && item.hotkey && (
           <sup style={{ fontSize: '9px' }}>[{item.hotkey}]</sup>
