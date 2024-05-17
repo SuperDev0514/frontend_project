@@ -1,36 +1,41 @@
-import { types } from "mobx-state-tree";
+import { types } from 'mobx-state-tree';
 
-import BaseTool, { DEFAULT_DIMENSIONS } from "./Base";
-import ToolMixin from "../mixins/Tool";
-import { ThreePointsDrawingTool, TwoPointsDrawingTool } from "../mixins/DrawingTool";
-import { AnnotationMixin } from "../mixins/AnnotationMixin";
-import { NodeViews } from "../components/Node/Node";
+
+import BaseTool, { DEFAULT_DIMENSIONS } from './Base';
+import ToolMixin from '../mixins/Tool';
+import { ThreePointsDrawingTool, TwoPointsDrawingTool } from '../mixins/DrawingTool';
+import { AnnotationMixin } from '../mixins/AnnotationMixin';
+import { NodeViews } from '../components/Node/Node';
 
 const _BaseNPointTool = types
-  .model("BaseNTool", {
-    group: "segmentation",
+  .model('BaseNTool', {
+    group: 'segmentation',
     smart: true,
-    shortcut: "R",
+    shortcut: 'R',
   })
   .views(self => {
     const Super = {
       createRegionOptions: self.createRegionOptions,
+      isIncorrectControl: self.isIncorrectControl,
+      isIncorrectLabel: self.isIncorrectLabel,
     };
 
     return {
+      get getActivePolygon() {
+        const poly = self.currentArea;
+
+        if (poly && poly.closed) return null;
+        if (poly === undefined) return null;
+        if (poly && poly.type !== 'rectangleregion') return null;
+
+        return poly;
+      },
+
       get tagTypes() {
         return {
-          stateTypes: "rectanglelabels",
-          controlTagTypes: ["rectanglelabels", "rectangle"],
+          stateTypes: 'rectanglelabels',
+          controlTagTypes: ['rectanglelabels', 'rectangle'],
         };
-      },
-      get viewTooltip() {
-        return "Rectangle";
-      },
-      get iconComponent() {
-        return self.dynamic
-          ? NodeViews.RectRegionModel.altIcon
-          : NodeViews.RectRegionModel.icon;
       },
       get defaultDimensions() {
         return DEFAULT_DIMENSIONS.rect;
@@ -43,6 +48,20 @@ const _BaseNPointTool = types
           width: 1,
         });
       },
+
+      isIncorrectControl() {
+        return Super.isIncorrectControl() && self.current() === null;
+      },
+      isIncorrectLabel() {
+        return !self.current() && Super.isIncorrectLabel();
+      },
+      canStart() {
+        return self.current() === null;
+      },
+
+      current() {
+        return self.getActivePolygon;
+      },
     };
   })
   .actions(self => ({
@@ -54,12 +73,13 @@ const _BaseNPointTool = types
   }));
 
 const _Tool = types
-  .model("RectangleTool", {
-    shortcut: "R",
+
+  .model('RectangleTool', {
+    shortcut: 'R',
   })
   .views(self => ({
     get viewTooltip() {
-      return "Rectangle";
+      return 'Rectangle';
     },
     get iconComponent() {
       return self.dynamic
@@ -69,12 +89,13 @@ const _Tool = types
   }));
   
 const _Tool3Point = types
-  .model("Rectangle3PointTool", {
-    shortcut: "shift+R",
+
+  .model('Rectangle3PointTool', {
+    shortcut: 'shift+R',
   })
   .views(self => ({
     get viewTooltip() {
-      return "3 Point Rectangle";
+      return '3 Point Rectangle';
     },
     get iconComponent() {
       return self.dynamic
