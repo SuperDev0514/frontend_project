@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { Button } from '../../common/Button/Button';
 import { Tooltip } from '../../common/Tooltip/Tooltip';
@@ -47,9 +48,9 @@ export const Controls = controlsInjector(observer(({ store, history, annotation 
 
     if (isInProgress) return;
     setIsInProgress(true);
-    if(!inputRef.current || addedCommentThisSession){
+    if (!inputRef.current || addedCommentThisSession) {
       callback();
-    } else if((currentComment ?? '').trim()) {
+    } else if ((currentComment ?? '').trim()) {
       e.preventDefault();
       await commentFormSubmit();
       callback();
@@ -76,8 +77,8 @@ export const Controls = controlsInjector(observer(({ store, history, annotation 
   const RejectButton = useMemo(() => {
     return (
       <ButtonTooltip key="reject" title="Reject annotation: [ Ctrl+Space ]">
-        <Button aria-label="reject-annotation" disabled={disabled} look="danger" onClick={async (e)=> {
-          if(store.hasInterface('comments:reject') ?? true) {
+        <Button aria-label="reject-annotation" disabled={disabled} look="danger" onClick={async (e) => {
+          if (store.hasInterface('comments:reject') ?? true) {
             buttonHandler(e, () => store.rejectAnnotation({}), 'Please enter a comment before rejecting');
           } else {
             console.log('rejecting');
@@ -120,11 +121,12 @@ export const Controls = controlsInjector(observer(({ store, history, annotation 
       </ButtonTooltip>,
     );
   } else {
+
     if (store.hasInterface('skip')) {
       buttons.push(
         <ButtonTooltip key="skip" title="Cancel (skip) task: [ Ctrl+Space ]">
-          <Button aria-label="skip-task" disabled={disabled} look="danger" onClick={async (e)=> {
-            if(store.hasInterface('comments:skip') ?? true) {
+          <Button aria-label="skip-task" disabled={disabled} look="danger" onClick={async (e) => {
+            if (store.hasInterface('comments:skip') ?? true) {
               buttonHandler(e, () => store.skipTask({}), 'Please enter a comment before skipping');
             } else {
               await store.commentStore.commentFormSubmit();

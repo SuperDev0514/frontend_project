@@ -1,3 +1,4 @@
+
 import chroma from 'chroma-js';
 import { CSSProperties, FC, memo, MouseEvent, useCallback, useContext, useMemo } from 'react';
 import { Block, Elem } from '../../../../utils/bem';
@@ -24,6 +25,7 @@ export const Keypoints: FC<KeypointsProps> = ({
 }) => {
   const { step, seekOffset, visibleWidth, length } = useContext(TimelineContext);
   const { label, color, visible, sequence, selected } = region;
+
 
   const extraSteps = useMemo(() => {
     return Math.round(visibleWidth / 2);
@@ -112,6 +114,7 @@ const LifespansList: FC<LifespansListProps> = ({
 
         return (
           <LifespanItem
+
             key={`${i}-${points.length}-${isLast}-${visible}`}
             mainOffset={offset}
             step={step}
