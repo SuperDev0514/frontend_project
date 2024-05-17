@@ -1,5 +1,6 @@
 import { types } from 'mobx-state-tree';
 
+
 import BaseTool, { DEFAULT_DIMENSIONS } from './Base';
 import ToolMixin from '../mixins/Tool';
 import { ThreePointsDrawingTool, TwoPointsDrawingTool } from '../mixins/DrawingTool';
@@ -72,6 +73,7 @@ const _BaseNPointTool = types
   }));
 
 const _Tool = types
+
   .model('RectangleTool', {
     shortcut: 'R',
   })
@@ -87,6 +89,7 @@ const _Tool = types
   }));
 
 const _Tool3Point = types
+
   .model('Rectangle3PointTool', {
     shortcut: 'shift+R',
   })

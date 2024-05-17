@@ -1,3 +1,4 @@
+
 import React, { Component, createRef, forwardRef, Fragment, memo, useEffect, useRef, useState } from 'react';
 import { Group, Layer, Line, Rect, Stage } from 'react-konva';
 import { observer } from 'mobx-react';
@@ -469,6 +470,7 @@ export default observer(
 
     imageRef = createRef();
     crosshairRef = createRef();
+
     handleDeferredMouseDown = null;
     deferredClickTimeout = [];
     skipMouseUp = false;
@@ -520,6 +522,7 @@ export default observer(
 
     handleMouseDown = e => {
       const { item } = this.props;
+
       const isPanTool = item.getToolsManager().findSelectedTool()?.fullName === 'ZoomPanTool';
 
       item.updateSkipInteractions(e);
@@ -528,6 +531,7 @@ export default observer(
 
       if (item.annotation.isReadOnly() && !isPanTool) return;
       if (p && p.className === 'Transformer') return;
+
 
       const handleMouseDown = () => {
         if (
@@ -591,6 +595,7 @@ export default observer(
      * Mouse up outside the canvas
      */
     handleGlobalMouseUp = e => {
+
       window.removeEventListener('mousemove', this.handleGlobalMouseMove);
       window.removeEventListener('mouseup', this.handleGlobalMouseUp);
 
@@ -619,6 +624,7 @@ export default observer(
     handleMouseUp = e => {
       const { item } = this.props;
 
+
       if (isFF(FF_DEV_1442)) {
         this.resetDeferredClickTimeout();
       }
@@ -631,7 +637,7 @@ export default observer(
 
     handleMouseMove = e => {
       const { item } = this.props;
-
+      
       item.freezeHistory();
 
       this.updateCrosshair(e);
@@ -974,10 +980,14 @@ export default observer(
                     }}
                     style={item.imageTransform}
                   />
-                ) : null}
-              </div>
-            )}
-            {/* @todo this is dirty hack; rewrite to proper async waiting for data to load */}
+
+
+                )
+                : null}
+            </div>
+
+
+{/* @todo this is dirty hack; rewrite to proper async waiting for data to load */}
             {stageLoading || !toolsReady ? (
               <div className={styles.loading}><LoadingOutlined /></div>
             ) : (imageIsLoaded) ? (

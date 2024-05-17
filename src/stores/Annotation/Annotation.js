@@ -1,3 +1,4 @@
+
 import { destroy, detach, flow, getEnv, getParent, getRoot, isAlive, onSnapshot, types } from 'mobx-state-tree';
 
 import throttle from 'lodash.throttle';
@@ -273,6 +274,7 @@ export const Annotation = types
       self.editable = val;
     },
 
+
     setReadonly(val) {
       self.readonly = val;
     },
@@ -280,6 +282,7 @@ export const Annotation = types
     setIsDrawing(isDrawing) {
       self.isDrawing = isDrawing;
     },
+
 
     setUnresolvedCommentCount(val) {
       self.unresolved_comment_count = val;
@@ -1153,6 +1156,7 @@ export const Annotation = types
           });
           return newValue;
         };
+
 
         if (isFF(FF_DEV_3391)) {
           to_name = `${to_name}@${self.id}`;

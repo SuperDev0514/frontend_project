@@ -195,44 +195,16 @@ export const FF_LSDV_4583_6 = 'fflag_feat_front_lsdv_4583_6_images_preloading_sh
  */
 export const FF_LSDV_3009 = 'fflag_fix_font_lsdv_3009_draft_saving_stuck_130223_short';
 
-/**
- * New Syncable mixin for better sync
- */
-export const FF_LSDV_3012 = 'fflag_feat_front_lsdv_3012_syncable_tags_070423_short';
 
-/**
- * Enables the ffmpeg audio decoder to be the default.
- */
-export const FF_LSDV_4701 = 'fflag_feat_front_lsdv_4701_audio_default_decoder_ffmpeg_long';
+export const FF_DEV_2480 = "ff_dev_2480_convenient_offsets_270522_short";
 
-/**
- * Adding "skipDuplicates" parameter for <TextArea /> to preventing adding duplicate entries
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_feat_front_lsdv_4659_skipduplicates_060323_short
- */
-export const FF_LSDV_4659 = 'fflag_feat_front_lsdv_4659_skipduplicates_060323_short';
+export const FF_DEV_2132 = "ff_front_dev_2132_rotating_bounding_box";
 
-/**
- * New Ranker tag; flag is used for `deleteAllRegions()` optimization
- */
-export const FF_LSDV_4832 = 'fflag_feat_front_lsdv_4832_new_ranker_tag_120423_short';
+export const FF_DEV_2458 = "ff_front_dev_2458_comments_for_skip_250522_short";
 
-/**
- * Fixing issue with missed steps in timeseries with optimized data and zoom
- *
- * @link https://app.launchdarkly.com/default/production/features/fflag_fix_front_lsdv_4881_timeseties_points_missing_140423_short
- */
-export const FF_LSDV_4881 = 'fflag_fix_front_lsdv_4881_timeseries_points_missing_140423_short';
+export const FF_DEV_1442 = "ff_front_dev_1442_unselect_shape_on_click_outside_080622_short";
 
-Object.assign(window, {
-  APP_SETTINGS: {
-    ...(window.APP_SETTINGS ?? {}),
-    feature_flags: {
-      ...(window.APP_SETTINGS?.feature_flags ?? {}),
-      ...(window.FEATURE_FLAGS ?? {}),
-    },
-  },
-});
+export const FF_DEV_2431 = "ff_front_dev_2431_delete_polygon_points_080622_short";
 
 function getFeatureFlags() {
   return {
