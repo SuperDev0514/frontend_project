@@ -1,5 +1,6 @@
 /* global Feature, Scenario */
 
+
 Feature('Wrong ordered results deserialization').tag('@regress');
 
 Scenario('Combining results of per-region  textarea and richtext regions.', async ({ I, LabelStudio, AtSidebar }) => {
@@ -8,6 +9,7 @@ Scenario('Combining results of per-region  textarea and richtext regions.', asyn
   LabelStudio.init({
     annotations: [
       {
+
         id: 'test', result: [
 
           {
@@ -43,6 +45,7 @@ Scenario('Combining results of per-region  textarea and richtext regions.', asyn
   <Text name="text" value="$text"  />
   <Textarea name="comment" toname="text" perregion="true"/>
 </View>`,
+
     data: { text: 'Just a text' },
   });
 

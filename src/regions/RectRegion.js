@@ -11,7 +11,6 @@ import { AreaMixin } from '../mixins/AreaMixin';
 import { KonvaRegionMixin } from '../mixins/KonvaRegion';
 import { default as DisabledMixin, default as NormalizationMixin } from '../mixins/Normalization';
 import RegionsMixin from '../mixins/Regions';
-import WithStatesMixin from '../mixins/WithStates';
 import { ImageModel } from '../tags/object/Image';
 import { rotateBboxCoords } from '../utils/bboxCoords';
 import { createDragBoundFunc } from '../utils/image';
@@ -178,6 +177,7 @@ const Model = types
 
       }
 
+
       self.setPosition(self.x, self.y, self.width, self.height, self.rotation);
 
       const areaBBoxCoords = self?.bboxCoords;
@@ -312,7 +312,6 @@ const Model = types
 
 const RectRegionModel = types.compose(
   'RectRegionModel',
-  WithStatesMixin,
   RegionsMixin,
   NormalizationMixin,
   DisabledMixin,
@@ -426,6 +425,7 @@ const HtxRectangleView = ({ item }) => {
           item.setHighlight(false);
           item.onClickRegion(e);
         }}
+
         listening={!suggestion && !item.annotation.isDrawing}
       />
       <LabelOnRect item={item} color={regionStyles.strokeColor} strokewidth={regionStyles.strokeWidth} />

@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { FC, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Tooltip } from 'antd';
@@ -19,6 +20,7 @@ import { Userpic } from '../../common/Userpic/Userpic';
 import { Block, Elem } from '../../utils/bem';
 import { humanDateDiff, userDisplayName } from '../../utils/utilities';
 import './AnnotationHistory.styl';
+import { when } from 'mobx';
 
 type HistoryItemType = (
   'prediction' |
@@ -48,6 +50,13 @@ const injector = inject(({ store }) => {
   };
 });
 
+const humanDateDiff = (date: string | number) => {
+  const fnsDate = formatDistanceToNow(new Date(date), { addSuffix: true });
+
+  if (fnsDate === "less than a minute ago") return "just now";
+  return fnsDate;
+};
+
 const DraftState: FC<{
   annotation: any,
   inline?: boolean,
@@ -55,6 +64,10 @@ const DraftState: FC<{
 }> = observer(({ annotation, inline, isSelected }) => {
   const hasChanges = annotation.history.hasChanges;
   const store = annotation.list; // @todo weird name
+  const dateCreated = !annotation.isDraftSaving && annotation.draftSaved;
+
+  const [hasUnsavedChanges, setChanges] = useState(false);
+
 
   const [hasUnsavedChanges, setChanges] = useState(false);
 
@@ -131,10 +144,18 @@ const AnnotationHistoryComponent: FC<any> = ({
             acceptedState={item.actionType}
             selected={isSelected}
             disabled={item.results.length === 0}
-            onClick={() => {
+            onClick={async () => {
               if (!showDraft) {
                 annotationStore.selectHistory(isSelected ? null : item);
                 return;
+              }
+
+
+
+              if (hasChanges) {
+                annotation.saveDraftImmediately();
+                // wait for draft to be saved before switching to history
+                await when(() => !annotation.isDraftSaving);
               }
 
               if (isLastItem || isSelected) {
@@ -181,6 +202,7 @@ const HistoryItemComponent: FC<{
 
   const reason = useMemo(() => {
     switch(acceptedState) {
+
       case 'accepted': return 'Accepted';
       case 'rejected': return 'Rejected';
       case 'fixed_and_accepted': return 'Fixed';

@@ -1,6 +1,7 @@
 // export { default as Zoom } from "./Zoom";
 // export { default as KeyPoint } from "./KeyPoint";
 
+
 import { Brush } from './Brush';
 import { Erase } from './Erase';
 import { KeyPoint } from './KeyPoint';
@@ -11,7 +12,7 @@ import { Zoom } from './Zoom';
 import { Rotate } from './Rotate';
 import { Brightness } from './Brightness';
 import { Contrast } from './Contrast';
-import { FloodFill } from './FloodFill';
+import { MagicWand } from './MagicWand';
 import { Selection } from './Selection';
 
-export { Brush, Erase, KeyPoint, Polygon, Rect, Rect3Point, Ellipse, Brightness, Contrast, Rotate, Zoom, FloodFill, Selection };
+export { Brush, Erase, KeyPoint, Polygon, Rect, Rect3Point, Ellipse, Brightness, Contrast, Rotate, Zoom, MagicWand, Selection };

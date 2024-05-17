@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { Button } from '../../common/Button/Button';
 import { Tooltip } from '../../common/Tooltip/Tooltip';
@@ -120,6 +121,7 @@ export const Controls = controlsInjector(observer(({ store, history, annotation 
       </ButtonTooltip>,
     );
   } else {
+
     if (store.hasInterface('skip')) {
       buttons.push(
         <ButtonTooltip key="skip" title="Cancel (skip) task: [ Ctrl+Space ]">
