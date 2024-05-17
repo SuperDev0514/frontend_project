@@ -1,10 +1,12 @@
 import { types } from 'mobx-state-tree';
 
+
 import BaseTool, { DEFAULT_DIMENSIONS } from './Base';
 import ToolMixin from '../mixins/Tool';
 import { ThreePointsDrawingTool, TwoPointsDrawingTool } from '../mixins/DrawingTool';
 import { AnnotationMixin } from '../mixins/AnnotationMixin';
 import { NodeViews } from '../components/Node/Node';
+import { FF_DEV_3793, isFF } from '../utils/feature-flags';
 
 const _BaseNPointTool = types
   .model('BaseNTool', {
@@ -43,8 +45,8 @@ const _BaseNPointTool = types
         return Super.createRegionOptions({
           x,
           y,
-          height: 1,
-          width: 1,
+          height: isFF(FF_DEV_3793) ? self.obj.canvasToInternalY(1) : 1,
+          width: isFF(FF_DEV_3793) ? self.obj.canvasToInternalX(1) : 1,
         });
       },
 
@@ -67,11 +69,12 @@ const _BaseNPointTool = types
     beforeCommitDrawing() {
       const s = self.getActiveShape;
 
-      return s.width > self.MIN_SIZE.X  && s.height * self.MIN_SIZE.Y;
+      return s.width > self.MIN_SIZE.X && s.height * self.MIN_SIZE.Y;
     },
   }));
 
 const _Tool = types
+
   .model('RectangleTool', {
     shortcut: 'R',
   })
@@ -87,6 +90,7 @@ const _Tool = types
   }));
 
 const _Tool3Point = types
+
   .model('Rectangle3PointTool', {
     shortcut: 'shift+R',
   })

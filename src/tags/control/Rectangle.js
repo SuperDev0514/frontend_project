@@ -1,12 +1,13 @@
 import { types } from 'mobx-state-tree';
 
+
 import Registry from '../../core/Registry';
 import ControlBase from './Base';
 import { customTypes } from '../../core/CustomTypes';
 import { AnnotationMixin } from '../../mixins/AnnotationMixin';
 import SeparatedControlMixin from '../../mixins/SeparatedControlMixin';
 import { ToolManagerMixin } from '../../mixins/ToolManagerMixin';
-import { FF_DEV_2132, FF_DEV_3793, isFF } from '../../utils/feature-flags';
+import { FF_DEV_2132, FF_DEV_3793, FF_LSDV_4673, isFF } from '../../utils/feature-flags';
 
 /**
  * The `Rectangle` tag is used to add a rectangle (Bounding Box) to an image without selecting a label. This can be useful when you have only one label to assign to a rectangle.
@@ -49,7 +50,10 @@ const Model = types
     type: 'rectangle',
   })
   .volatile(() => ({
-    toolNames: isFF(FF_DEV_2132) && !isFF(FF_DEV_3793) ? ['Rect', 'Rect3Point'] : ['Rect'],
+
+
+
+    toolNames: isFF(FF_DEV_2132) ? ['Rect', 'Rect3Point'] : ['Rect'],
   }));
 
 const RectangleModel = types.compose('RectangleModel',

@@ -1,4 +1,6 @@
+
 import { clamp, isDefined } from './utilities';
+import { FF_LSDV_4620_3, isFF } from './feature-flags';
 
 export const isTextNode = node => node && node.nodeType === Node.TEXT_NODE;
 
@@ -279,6 +281,7 @@ const applyTextGranularity = (selection, granularity) => {
  * @param {string} direction forward, backward, forward-next, backward-next
  *                           "-next" when we need to skip node if it's a text node
  */
+
 const textNodeLookup = (commonContainer, node, offset, direction = 'forward') => {
   const startNode = node === commonContainer ? node.childNodes[offset] : node;
 
@@ -294,6 +297,7 @@ const textNodeLookup = (commonContainer, node, offset, direction = 'forward') =>
     if (isTextNode(currentNode)) lastTextNode = currentNode;
     currentNode = walker.nextNode();
   }
+
 
   if (currentNode && direction.startsWith('backward')) return lastTextNode;
 
@@ -326,6 +330,7 @@ const fixRange = range => {
   // if user started selection from the end of the tag, start could be this tag,
   // so we should move it to more relevant one
   const selectionFromTheEnd = startContainer.wholeText.length === startOffset;
+
   // we skip ephemeral whitespace-only text nodes, like \n between tags in original html
   const isBasicallyEmpty = textNode => /^\s*$/.test(textNode.wholeText);
 
@@ -340,6 +345,7 @@ const fixRange = range => {
   }
 
   if (!isTextNode(endContainer)) {
+
     endContainer = textNodeLookup(commonContainer, endContainer, endOffset, 'backward');
     if (!endContainer) return null;
 
@@ -355,7 +361,7 @@ const fixRange = range => {
 };
 
 /**
- * Highlight gien Range
+ * Highlight given Range
  * @param {Range} range
  * @param {{label: string, classNames: string[]}} param1
  */
@@ -417,7 +423,9 @@ export const highlightRangePart = (container, startOffset, endOffset, classNames
    * In case we're inside another region, move the selection outside
    * to maintain proper nesting of highlight nodes
    */
-  if (startOffset === 0 && container.length === endOffset && parent.classList.contains(classNames[0])) {
+  if (startOffset === 0 && container.length === endOffset
+    && parent.classList.contains(classNames[0])
+    && (!isFF(FF_LSDV_4620_3) || parent.innerText === text)) {
     const placeholder = container.ownerDocument.createElement('span');
     const parentNode = parent.parentNode;
 
@@ -694,7 +702,7 @@ export const rangeToGlobalOffset = (range, root) => {
  * @param {Number} position
  * @param {Node} root
  */
-const findGlobalOffset = (node, position, root) => {
+export const findGlobalOffset = (node, position, root) => {
   const walker = (root.contentDocument ?? root.ownerDocument).createTreeWalker(root, NodeFilter.SHOW_ALL);
 
   let globalPosition = 0;

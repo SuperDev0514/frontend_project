@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { FC } from 'react';
 import { Block, Elem } from '../../../utils/bem';
@@ -54,6 +55,7 @@ const Content: FC<any> = observer(({
 });
 
 
+
 const CommentsTab: FC<any> = inject('store')(observer(({ store }) => {
   return (
     <>
@@ -61,7 +63,7 @@ const CommentsTab: FC<any> = inject('store')(observer(({ store }) => {
         <Block name="comments-panel">
           <Elem name="section-tab">
             <Elem name="section-content">
-              <CommentsComponent commentStore={store.commentStore} cacheKey={`task.${store.task.id}`} />
+              <CommentsComponent annotationStore={store.annotationStore} commentStore={store.commentStore} cacheKey={`task.${store.task.id}`} />
             </Elem>
           </Elem>
         </Block>
@@ -162,13 +164,16 @@ const GeneralPanel: FC<any> = inject('store')(observer(({ store, currentEntity }
           />
         </Elem>
       </Elem>
+
       {store.hasInterface('annotations:comments') && store.commentStore.isCommentable && (
         <Elem name="section">
           <Elem name="section-head">
             Comments
           </Elem>
           <Elem name="section-content">
+
             <CommentsComponent
+              annotationStore={store.annotationStore} 
               commentStore={store.commentStore}
               cacheKey={`task.${store.task.id}`}
             />
@@ -179,9 +184,10 @@ const GeneralPanel: FC<any> = inject('store')(observer(({ store, currentEntity }
   );
 }));
 
+
 GeneralPanel.displayName = 'GeneralPanel';
 
-const RegionsPanel: FC<{regions:  any}> = observer(({
+const RegionsPanel: FC<{regions: any}> = observer(({
   regions,
 }) => {
   return (

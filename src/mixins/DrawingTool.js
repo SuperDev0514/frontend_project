@@ -4,6 +4,7 @@ import Utils from '../utils';
 import throttle from 'lodash.throttle';
 import { MIN_SIZE } from '../tools/Base';
 import { FF_DEV_3666, FF_DEV_3793, isFF } from '../utils/feature-flags';
+import { RELATIVE_STAGE_HEIGHT, RELATIVE_STAGE_WIDTH } from '../components/ImageView/Image';
 
 const DrawingTool = types
   .model('DrawingTool', {
@@ -12,7 +13,7 @@ const DrawingTool = types
     unselectRegionOnToolChange: true,
   })
   .volatile(() => {
-    return { 
+    return {
       currentArea: null,
     };
   })
@@ -56,8 +57,8 @@ const DrawingTool = types
       get MIN_SIZE() {
         if (isFF(FF_DEV_3793)) {
           return {
-            X: MIN_SIZE.X / self.obj.stageScale / self.obj.stageWidth * 100,
-            Y: MIN_SIZE.Y / self.obj.stageScale / self.obj.stageHeight * 100,
+            X: MIN_SIZE.X / self.obj.stageScale / self.obj.stageWidth * RELATIVE_STAGE_WIDTH,
+            Y: MIN_SIZE.Y / self.obj.stageScale / self.obj.stageHeight * RELATIVE_STAGE_HEIGHT,
           };
         }
 
@@ -134,10 +135,13 @@ const DrawingTool = types
           return value;
         }, { coordstype: 'px', dynamic: self.dynamic });
 
-        const newArea = self.annotation.createResult(value, currentArea.results[0].value.toJSON(), control, obj);
+        const [main, ...rest] = currentArea.results;
+        const newArea = self.annotation.createResult(value, main.value.toJSON(), control, obj);
+
+        //when user is using two different labels tag to draw a region, the other labels will be added to the region
+        rest.forEach(r => newArea.addResult(r.toJSON()));
 
         currentArea.setDrawing(false);
-        self.applyActiveStates(newArea);
         self.deleteRegion();
         newArea.notifyDrawingFinished();
         return newArea;
@@ -230,16 +234,30 @@ const TwoPointsDrawingTool = DrawingTool.named('TwoPointsDrawingTool')
         const shape = self.getCurrentArea();
 
         if (!shape) return;
-        const { stageWidth, stageHeight } = self.obj;
+        const isEllipse = shape.type.includes('ellipse');
+        const maxStageWidth = isFF(FF_DEV_3793) ? RELATIVE_STAGE_WIDTH : self.obj.stageWidth;
+        const maxStageHeight = isFF(FF_DEV_3793) ? RELATIVE_STAGE_HEIGHT : self.obj.stageHeight;
 
-        let { x1, y1, x2, y2 } = Utils.Image.reverseCoordinates({ x: shape.startX, y: shape.startY }, { x, y });
+        let { x1, y1, x2, y2 } = isEllipse ? {
+          x1: shape.startX,
+          y1: shape.startY,
+          x2: x,
+          y2: y,
+        } : Utils.Image.reverseCoordinates({ x: shape.startX, y: shape.startY }, { x, y });
 
         x1 = Math.max(0, x1);
         y1 = Math.max(0, y1);
-        x2 = Math.min(stageWidth, x2);
-        y2 = Math.min(stageHeight, y2);
+        x2 = Math.min(maxStageWidth, x2);
+        y2 = Math.min(maxStageHeight, y2);
 
-        shape.setPositionInternal(x1, y1, x2 - x1, y2 - y1, shape.rotation);
+        let [distX, distY] = [x2 - x1, y2 - y1].map(Math.abs);
+
+        if (isEllipse) {
+          distX = Math.min(distX, Math.min(x1, maxStageWidth - x1));
+          distY = Math.min(distY, Math.min(y1, maxStageHeight - y1));
+        }
+
+        shape.setPositionInternal(x1, y1, distX, distY, shape.rotation);
       },
 
       finishDrawing(x, y) {
@@ -286,6 +304,8 @@ const TwoPointsDrawingTool = DrawingTool.named('TwoPointsDrawingTool')
 
       clickEv(_, [x, y]) {
         if (!self.canStartDrawing()) return;
+        // @todo: here is a potential problem with endPoint
+        // it may be incorrect due to it may be not set at this moment
         if (startPoint && endPoint && !self.comparePointsWithThreshold(startPoint, endPoint)) return;
         if (currentMode === DEFAULT_MODE) {
           modeAfterMouseMove = TWO_CLICKS_MODE;
@@ -420,7 +440,7 @@ const MultipleClicksDrawingTool = DrawingTool.named('MultipleClicksMixin')
       },
 
       drawDefault() {
-        const { x,y } = startPoint;
+        const { x, y } = startPoint;
         let dX = self.defaultDimensions.length;
         let dY = self.defaultDimensions.length;
 
@@ -438,6 +458,7 @@ const MultipleClicksDrawingTool = DrawingTool.named('MultipleClicksMixin')
       },
     };
   });
+
 
 const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
   .views((self) => ({
@@ -467,6 +488,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
     };
 
     return {
+
       canStartDrawing() {
         return !self.isIncorrectControl();
       },
@@ -485,16 +507,17 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
         const shape = self.getCurrentArea();
 
         if (!shape) return;
-        const { stageWidth, stageHeight } = self.obj;
+        const maxStageWidth = isFF(FF_DEV_3793) ? RELATIVE_STAGE_WIDTH : self.obj.stageWidth;
+        const maxStageHeight = isFF(FF_DEV_3793) ? RELATIVE_STAGE_HEIGHT : self.obj.stageHeight;
 
         let { x1, y1, x2, y2 } = Utils.Image.reverseCoordinates({ x: shape.startX, y: shape.startY }, { x, y });
 
         x1 = Math.max(0, x1);
         y1 = Math.max(0, y1);
-        x2 = Math.min(stageWidth, x2);
-        y2 = Math.min(stageHeight, y2);
+        x2 = Math.min(maxStageWidth, x2);
+        y2 = Math.min(maxStageHeight, y2);
 
-        shape.setPosition(x1, y1, x2 - x1, y2 - y1, shape.rotation);
+        shape.setPositionInternal(x1, y1, x2 - x1, y2 - y1, shape.rotation);
       },
 
       finishDrawing(x, y) {
@@ -510,8 +533,10 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
       },
 
       mousemoveEv(_, [x, y]) {
-        if (self.isDrawing) {
-          if (lastEvent === MOUSE_DOWN_EVENT) {
+
+
+        if(self.isDrawing){
+          if(lastEvent === MOUSE_DOWN_EVENT) {
             currentMode = DRAG_MODE;
           }
 
@@ -524,6 +549,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
         }
       },
       mousedownEv(ev, [x, y]) {
+
         if (!self.canStartDrawing() || self.annotation.isDrawing) return;
         lastEvent = MOUSE_DOWN_EVENT;
         startPoint = { x, y };
@@ -540,6 +566,7 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
         }
       },
       clickEv(ev, [x, y]) {
+
         if (!self.canStartDrawing()) return;
         if (currentMode === DEFAULT_MODE) {
           self._clickEv(ev, [x, y]);
@@ -580,5 +607,6 @@ const ThreePointsDrawingTool = DrawingTool.named('ThreePointsDrawingTool')
       },
     };
   });
+
 
 export { DrawingTool, TwoPointsDrawingTool, MultipleClicksDrawingTool, ThreePointsDrawingTool };

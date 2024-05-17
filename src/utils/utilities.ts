@@ -1,3 +1,4 @@
+
 import { formatDistanceToNow } from 'date-fns';
 import { destroy, detach } from 'mobx-state-tree';
 import { toCamelCase } from 'strman';
@@ -177,22 +178,29 @@ export const chunks = <T extends any[]>(source: T, chunkSize: number): T[][] => 
   const result = [];
   let i,j;
 
-  for (i=0,j=source.length; i<j; i+=chunkSize) {
-    result.push(source.slice(i,i+chunkSize));
+  for (i = 0,j = source.length; i < j; i += chunkSize) {
+    result.push(source.slice(i,i + chunkSize));
   }
 
   return result;
 };
 
-export const userDisplayName = (user: any = {}) => {
-  const firstName = user.firstName ?? user.firstName;
-  const lastName = user.lastName ?? user.lastName;
+export const userDisplayName = (user: Record<string, string> = {}) => {
+  const { firstName, lastName } = user;
 
   return (firstName || lastName)
     ? [firstName, lastName].filter(n => !!n).join(' ').trim()
-    : (user.username)
-      ? user.username
-      : user.email;
+    : (user.username || user.email);
+};
+
+/**
+ * This name supposed to be username, but most likely it's first_name and last_name
+ * @param {string} createdBy string like "[<name> ]<email>, <id>"
+ * @returns {string} email
+ */
+export const emailFromCreatedBy = (createdBy: string) => {
+  // get the email followed by id and cut off the id
+  return createdBy?.match(/([^@,\s]+@[^@,\s]+)(,\s*\d+)?$/)?.[1];
 };
 
 export const camelizeKeys = (object: any): Record<string, unknown> => {
@@ -228,6 +236,7 @@ export const triggerResizeEvent = () => {
 export const humanDateDiff = (date: string | number): string => {
   const fnsDate = formatDistanceToNow(new Date(date), { addSuffix: true });
 
+
   if (fnsDate === 'less than a minute ago') return 'just now';
   return fnsDate;
 };
@@ -242,3 +251,13 @@ export const destroyMSTObject = (object: any) => {
 // fixes `observe` - it watches only the changes of primitive props of observables used,
 // so pass all the required primitives to this stub and they'll be observed
 export const fixMobxObserve = (..._toObserve: any[]) => {};
+
+/**
+ * Sort annotations by createdDate in place. This function mutates the input array, so don't pass original list.
+ * Use the same ordering in different places to keep it consistent. Just sort to have the latest first.
+ * @param {object[]} annotations
+ * @returns {object[]} sorted list of annotations
+ */
+export const sortAnnotations = (annotations: any[]) => {
+  return annotations.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
+};

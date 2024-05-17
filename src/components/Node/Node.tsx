@@ -8,6 +8,7 @@ import {
   MessageOutlined
 } from '@ant-design/icons';
 
+
 import './Node.styl';
 import { Block, Elem } from '../../utils/bem';
 import { IconBrushTool, IconBrushToolSmart, IconCircleTool, IconCircleToolSmart, IconKeypointsTool, IconKeypointsToolSmart, IconPolygonTool, IconPolygonToolSmart, IconRectangle3PointTool, IconRectangle3PointToolSmart, IconRectangleTool, IconRectangleToolSmart, IconText, IconWarning } from '../../assets/icons';
@@ -58,6 +59,7 @@ const NodeViews = {
   }),
 
   Rect3PointRegionModel: NodeView({
+
     name: 'Rect3Point',
     icon: IconRectangle3PointTool,
     altIcon: IconRectangle3PointToolSmart,
@@ -127,7 +129,7 @@ const NodeDebug: FC<any> = observer(({ className, node }) => {
 const Node: FC<any> = observer(({ className, node }) => {
   const name = useNodeName(node);
 
-  if (!(name in NodeViews)) {
+  if (!name || !(name in NodeViews)) {
     console.error(`No ${name} in NodeView`);
     return null;
   }
@@ -138,9 +140,9 @@ const Node: FC<any> = observer(({ className, node }) => {
   return (
     <Block name="node" tag="span" className={className}>
       {labelName}
-      {node?.isDrawing && (
+      {node.isDrawing && (
         <Elem tag="span" name="incomplete">
-          <Tooltip title="Incomplete polygon">
+          <Tooltip title={`Incomplete ${node.type?.replace('region', '') ?? 'region'}`}>
             <IconWarning />
           </Tooltip>
         </Elem>
@@ -188,6 +190,9 @@ const NodeMinimal: FC<any> = observer(({ node }) => {
 });
 
 const useNodeName = (node: any) => {
+  // @todo sometimes node is control tag, not a region
+  // @todo and for new taxonomy it can be plain object
+  if (!node.$treenode) return null;
   return getType(node).name as keyof typeof NodeViews;
 };
 

@@ -8,6 +8,7 @@ interface FilterDropdownInterface {
   placeholder?: string;
   defaultValue?: string | string[] | undefined;
   optionRender?:any;
+  dataTestid?: string;
   style?:any;
 }
 
@@ -32,6 +33,7 @@ export const FilterDropdown: FC<FilterDropdownInterface> = ({
   defaultValue,
   items,
   style,
+  dataTestid,
   value,
   onChange }) => {
 
@@ -39,6 +41,7 @@ export const FilterDropdown: FC<FilterDropdownInterface> = ({
     <Select
       placeholder={placeholder}
       defaultValue={defaultValue}
+      dataTestid={dataTestid}
       value={value}
       style={{
         fontSize: 12,
@@ -46,7 +49,7 @@ export const FilterDropdown: FC<FilterDropdownInterface> = ({
         backgroundColor: '#fafafa',
         ...(style ?? {}),
       }}
-      onChange={(value) => onChange(items.findIndex((item) => (item.key ?? item.label) === value))}
+      onChange={(value) => onChange(value)}
       size='small'
     >
       {items.map(renderOptions)}

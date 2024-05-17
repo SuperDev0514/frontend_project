@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { IconOutlinerDrag } from '../../../assets/icons';
 import { useDrag } from '../../../hooks/useDrag';
 import { Block, Elem } from '../../../utils/bem';
@@ -6,6 +6,7 @@ import { DEFAULT_PANEL_HEIGHT } from '../constants';
 import './Tabs.styl';
 import { BaseProps, Side, TabProps } from './types';
 import { determineDroppableArea, determineLeftOrRight } from './utils';
+import { FF_OUTLINER_OPTIM, isFF } from '../../../utils/feature-flags';
 
 const classAddedTabs: (Element | undefined)[] = [];
 
@@ -56,6 +57,7 @@ const Tab = ({
   const ghostTabRef = useRef<HTMLDivElement>();
   const dragging = useRef(false);
   const location = useRef({ panelKey, tabIndex });
+  const [shouldShowGhostTab, setShouldShowGhostTab] = useState(false);
 
   location.current = { panelKey, tabIndex };
 
@@ -93,6 +95,7 @@ const Tab = ({
         const newX = event.pageX - (x - oX);
 
         if (ghostTabRef.current) {
+          setShouldShowGhostTab(true);
           ghostTabRef.current!.style.display = 'block';
           ghostTabRef.current!.style.top = `${newY}px`;
           ghostTabRef.current!.style.left = `${newX}px`;
@@ -113,7 +116,10 @@ const Tab = ({
         removeHoverClasses();
         classAddedTabs.length = 0;
         tabRef.current?.append(ghostTabRef.current!);
-        if (ghostTabRef.current?.style) ghostTabRef.current.style.display = 'none';
+        if (ghostTabRef.current?.style) {
+          ghostTabRef.current.style.display = 'none';
+          setShouldShowGhostTab(false);
+        }
         document.body.style.cursor = 'auto';
 
         if (!data || !dragging.current) return;
@@ -151,8 +157,8 @@ const Tab = ({
   );
 
   const Label = () => (
-    <Elem id={`${panelKey}_${tabIndex}_droppable`} name="tab" mod={{ active: locked ?  tabIndex === breakPointActiveTab : active }}>
-      {!locked && <Elem name="icon" tag={IconOutlinerDrag} width={20} />}
+    <Elem id={`${panelKey}_${tabIndex}_droppable`} name="tab" mod={{ active: locked ? tabIndex === breakPointActiveTab : active }}>
+      {!locked && <Elem name="icon" tag={IconOutlinerDrag} width={8} />}
       {tabText}
     </Elem>
   );
@@ -173,7 +179,7 @@ const Tab = ({
         }}
       >
         <Label />
-        <Elem name="contents">{children}</Elem>
+        {shouldShowGhostTab && <Elem name="contents">{children}</Elem>}
       </Elem>
     </Block>
   );
@@ -181,11 +187,11 @@ const Tab = ({
 
 export const Tabs = (props: BaseProps) => {
 
-  const ActiveComponent = props.panelViews?.find(view => view.active)?.component;
-
+  const ActiveComponent = props.locked ? props.panelViews[props.breakPointActiveTab].component : props.panelViews?.find(view => view.active)?.component;
+  
   return (
     <>
-      <Block name="tabs">
+      <Block name="tabs" mix={isFF(FF_OUTLINER_OPTIM) ? 'ff_outliner_optim' : void 0}>
         <Elem name="tabs-row">
           {props.panelViews.map((view, index) => {
             const { component: Component } = view;
@@ -211,7 +217,7 @@ export const Tabs = (props: BaseProps) => {
                   setBreakPointActiveTab={props.setBreakPointActiveTab}
                 >
                   <Elem name="content">
-                    <Component key={`${view.title}-${index}-ghost`} {...props} />
+                    <Component key={`${view.title}-${index}-ghost`} {...props} name={'outliner'} />
                   </Elem>
                 </Tab>
               </Elem>
@@ -222,10 +228,9 @@ export const Tabs = (props: BaseProps) => {
             name="drop-space-after"
           />
         </Elem>
-        <Elem  name="contents">
+        <Elem name="contents">
           {ActiveComponent && <ActiveComponent {...props} />}
         </Elem>
-          
       </Block>
     </>
   );

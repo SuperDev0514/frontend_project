@@ -2,6 +2,7 @@
 // HEADLESS=true npx codecept run
 const headless = process.env.HEADLESS;
 const port = process.env.LSF_PORT ?? 3000;
+
 const enableCoverage = process.env.COVERAGE === 'true';
 const fs = require('fs');
 const FRAGMENTS_PATH = './fragments/';
@@ -29,8 +30,15 @@ module.exports.config = {
       chromium: process.env.CHROMIUM_EXECUTABLE_PATH ? {
         executablePath: process.env.CHROMIUM_EXECUTABLE_PATH,
       } : {},
+      // to test date shifts because of timezone. (see date-time.test.js)
+      // Paris is in +1/+2 timezone, so date with midnight (00:00)
+      // will be always in previous day in ISO
+      timezoneId: 'Europe/Paris',
       trace: false,
       keepTraceForPassedTests: false,
+    },
+    PlaywrightAddon: {
+      require: './helpers/PlaywrightAddon.js',
     },
     MouseActions: {
       require: './helpers/MouseActions.js',

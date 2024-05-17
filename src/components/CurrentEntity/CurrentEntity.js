@@ -1,3 +1,4 @@
+
 import { inject, observer } from 'mobx-react';
 import { Space } from '../../common/Space/Space';
 import { Block, Elem } from '../../utils/bem';
@@ -56,6 +57,7 @@ export const CurrentEntity = injector(observer(({
 
       {/* {showHistory && !entity.userGenerate && ( */}
       {showHistory && (
+
         <Elem tag={Space} spread name="title">
           Annotation History
           <Elem name="id">#{entity.pk ?? entity.id}</Elem>

@@ -55,6 +55,9 @@ const _Tool = types
     smart: true,
     unselectRegionOnToolChange: isFF(FF_DEV_4081) ? false : true,
   })
+  .volatile(() => ({
+    canInteractWithRegions: false,
+  }))
   .views(self => ({
     get viewClass() {
       return () => <ToolView item={self} />;
@@ -117,7 +120,7 @@ const _Tool = types
       },
 
       updateCursor() {
-        if (!self.selected || !self.obj.stageRef) return;
+        if (!self.selected || !self.obj?.stageRef) return;
         const val = self.strokeWidth;
         const stage = self.obj.stageRef;
         const base64 = Canvas.brushSizeCircle(val);
